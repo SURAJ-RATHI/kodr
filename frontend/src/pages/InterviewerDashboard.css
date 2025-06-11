@@ -1,0 +1,304 @@
+@keyframes gradientBorder {
+  0% {
+    border-image: linear-gradient(45deg, #1890ff, #52c41a, #1890ff) 1;
+  }
+  50% {
+    border-image: linear-gradient(45deg, #52c41a, #1890ff, #52c41a) 1;
+  }
+  100% {
+    border-image: linear-gradient(45deg, #1890ff, #52c41a, #1890ff) 1;
+  }
+}
+
+@keyframes glowPulse {
+  0% {
+    box-shadow: 0 0 5px rgba(97, 218, 251, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(97, 218, 251, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(97, 218, 251, 0.2);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.interviewer-dashboard {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.interviewer-dashboard h1 {
+  margin-bottom: 32px;
+  color: #ffffff;
+  font-size: 2.5rem;
+  font-weight: 600;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(45deg, #1890ff, #52c41a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: glowPulse 3s infinite;
+}
+
+.stats-row {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.stats-row .ant-card {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.stats-row .ant-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.stats-row .ant-statistic-title {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.stats-row .ant-statistic-content {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #61DAFB;
+}
+
+.interviews-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.interviews-card .ant-card-head {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.interviews-card .ant-card-head-title {
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.interviews-card .ant-card-body {
+  padding: 1.5rem;
+}
+
+.candidate-name {
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.candidate-email {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill-tag {
+  background: rgba(97, 218, 251, 0.1);
+  color: #61DAFB;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  border: 1px solid rgba(97, 218, 251, 0.2);
+  transition: all 0.3s ease;
+}
+
+.skill-tag:hover {
+  background: rgba(97, 218, 251, 0.2);
+  transform: translateY(-2px);
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
+}
+
+.status-badge.scheduled {
+  background: rgba(97, 218, 251, 0.1);
+  color: #61DAFB;
+  border: 1px solid rgba(97, 218, 251, 0.2);
+}
+
+.status-badge.completed {
+  background: rgba(0, 122, 204, 0.1);
+  color: #007ACC;
+  border: 1px solid rgba(0, 122, 204, 0.2);
+}
+
+.status-badge.cancelled {
+  background: rgba(255, 59, 48, 0.1);
+  color: #FF3B30;
+  border: 1px solid rgba(255, 59, 48, 0.2);
+}
+
+/* Modal Styles */
+.schedule-modal .ant-modal-content {
+  background: rgba(26, 26, 26, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.schedule-modal .ant-modal-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+}
+
+.schedule-modal .ant-modal-title {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.schedule-modal .ant-modal-close {
+  color: rgba(255, 255, 255, 0.65);
+  transition: all 0.3s ease;
+}
+
+.schedule-modal .ant-modal-close:hover {
+  color: #61DAFB;
+  transform: rotate(90deg);
+}
+
+.schedule-modal .ant-modal-body {
+  padding: 1.5rem;
+}
+
+.schedule-modal .ant-form-item-label > label {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+.schedule-modal .ant-input,
+.schedule-modal .ant-picker,
+.schedule-modal .ant-select-selector {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease;
+}
+
+.schedule-modal .ant-input:focus,
+.schedule-modal .ant-picker:focus,
+.schedule-modal .ant-select-selector:focus {
+  border-color: #61DAFB !important;
+  box-shadow: 0 0 0 2px rgba(97, 218, 251, 0.2) !important;
+}
+
+.schedule-modal .ant-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.schedule-modal .ant-select-arrow {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Table Styles */
+.ant-table {
+  background: transparent !important;
+}
+
+.ant-table-thead > tr > th {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  transition: all 0.3s ease;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Button Styles */
+.ant-btn-primary {
+  background: linear-gradient(45deg, #61DAFB, #007ACC);
+  border: none;
+  height: 40px;
+  font-size: 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(97, 218, 251, 0.3);
+}
+
+@media (max-width: 768px) {
+  .stats-row .ant-statistic-content {
+    font-size: 1.5rem;
+  }
+  
+  .interviews-card .ant-card-body {
+    padding: 1rem;
+  }
+  
+  .schedule-modal .ant-modal-body {
+    padding: 1rem;
+  }
+} 
