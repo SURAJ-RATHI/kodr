@@ -9,6 +9,7 @@ import InterviewPanelPage from './pages/InterviewPanelPage'
 import InterviewerDashboard from './pages/InterviewerDashboard'
 import RoleSelection from './pages/RoleSelection'
 import InterviewerLogin from './pages/InterviewerLogin'
+import InterviewPage from './pages/InterviewPage'
 import Background3D from './components/Background3D'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
@@ -82,12 +83,16 @@ function App() {
               <Route path="/userinfo" element={<UserInfoPage />} />
               <Route path="/login" element={<InterviewerLogin />} />
               <Route 
-                path="/interview" 
+                path="/compiler" 
                 element={
-                  <ProtectedRoute requiredRole="interviewer">
+                  <ProtectedRoute>
                     <InterviewPanelPage />
                   </ProtectedRoute>
                 } 
+              />
+              <Route 
+                path="/interview/:interviewId" 
+                element={<InterviewPage />} 
               />
               <Route 
                 path="/interviewer-dashboard" 

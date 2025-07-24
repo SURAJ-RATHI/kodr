@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import styled from '@emotion/styled';
 import { motion, useAnimation } from 'framer-motion';
 import { FaCode, FaUserTie, FaLaptopCode, FaCodeBranch, FaTerminal, FaKeyboard, FaFileCode, FaBug, FaCheckCircle, FaPlay, FaStop, FaCog, FaJava } from 'react-icons/fa';
@@ -262,6 +263,7 @@ const interviewQuestions = [
 
 const RoleSelection = () => {
   const navigate = useNavigate();
+  const { setSelectedRole } = useAuth();
   const [hoveredRole, setHoveredRole] = useState(null);
   const controls = useAnimation();
 
@@ -277,6 +279,7 @@ const RoleSelection = () => {
   }, [controls]);
 
   const handleRoleSelect = (role) => {
+    setSelectedRole(role);
     if (role === 'interviewer') {
       navigate('/login');
     } else {

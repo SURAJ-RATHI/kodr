@@ -1,5 +1,10 @@
 import { motion } from 'framer-motion'
 import styled from '@emotion/styled'
+import { useState } from 'react';
+import { Modal, Input, Button as AntdButton, message } from 'antd';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const Footer = styled.footer`
   width: 100%;
@@ -282,6 +287,68 @@ const HomePage = () => {
     }
   }
 
+  const [isPasscodeModalVisible, setIsPasscodeModalVisible] = useState(false);
+  const [passcode, setPasscode] = useState('');
+  const [passcodeLoading, setPasscodeLoading] = useState(false);
+
+  const { isAuthenticated, user, loading } = useAuth();
+  console.log('[HomePage] Auth state:', { isAuthenticated, user, loading });
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log('HomePage auth debug:', { isAuthenticated, user });
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('startInterview') === 'true') {
+      if (isAuthenticated) {
+        setIsPasscodeModalVisible(true);
+      } else {
+        navigate(`/login?redirect=/home?startInterview=true`);
+      }
+    }
+    // If modal is open but user is not authenticated, close modal and redirect
+    if (isPasscodeModalVisible && !isAuthenticated) {
+      setIsPasscodeModalVisible(false);
+      navigate(`/login?redirect=/home?startInterview=true`);
+    }
+  }, [isAuthenticated, location.search, navigate, isPasscodeModalVisible]);
+
+  const handleStartInterviewClick = () => {
+    if (!isAuthenticated) {
+      navigate(`/login?redirect=/home?startInterview=true`);
+    } else {
+      setIsPasscodeModalVisible(true);
+    }
+  };
+
+  const handlePasscodeSubmit = async () => {
+    if (!passcode) {
+      message.error('Please enter the passcode.');
+      return;
+    }
+    setPasscodeLoading(true);
+    try {
+      const response = await fetch('/api/interviews/find-by-passcode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Invalid passcode');
+      }
+      // Redirect to interview page
+      window.location.href = `/interview/${data.interviewId}?passcode=${encodeURIComponent(passcode)}`;
+    } catch (error) {
+      message.error(error.message || 'Invalid passcode');
+    } finally {
+      setPasscodeLoading(false);
+    }
+  };
+
   return (
     <HomeContainer
       as={motion.div}
@@ -296,30 +363,32 @@ const HomePage = () => {
       <Subtitle variants={itemVariants}>
         Elevate your technical interviews with real-time coding, collaboration, and smart timing
       </Subtitle>
-      <ButtonContainer>
-        <Button
-          primary
-          variants={itemVariants}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => {
-            window.location.href = 'http://localhost:3000/auth/google';
-          }}
-        >
-          Start Interview
-        </Button>
-        <Button
-          variants={itemVariants}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => {
-            window.location.href = '/interview';
-          }}
-        >
-          <span className="button-icon">⚡</span>
-          Compiler
-        </Button>
-      </ButtonContainer>
+      {loading ? (
+        <div style={{ textAlign: 'center', margin: '2rem', color: '#61dafb' }}>Checking authentication...</div>
+      ) : (
+        <ButtonContainer>
+          <Button
+            primary
+            variants={itemVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleStartInterviewClick}
+          >
+            Start Interview
+          </Button>
+          <Button
+            variants={itemVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              window.location.href = '/compiler';
+            }}
+          >
+            <span className="button-icon">⚡</span>
+            Compiler
+          </Button>
+        </ButtonContainer>
+      )}
       <FeatureGrid variants={containerVariants}>
         <FeatureCard
           variants={itemVariants}
@@ -347,8 +416,34 @@ const HomePage = () => {
         &copy; {new Date().getFullYear()} Koder &mdash; Modern Interview Platform
         <a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a>
       </Footer>
+      {isAuthenticated && isPasscodeModalVisible && (
+        <Modal
+          title="Enter Passcode to Join Interview"
+          visible={isPasscodeModalVisible}
+          onCancel={() => setIsPasscodeModalVisible(false)}
+          footer={null}
+          centered
+        >
+          <Input
+            placeholder="Enter passcode"
+            value={passcode}
+            onChange={e => setPasscode(e.target.value)}
+            onPressEnter={handlePasscodeSubmit}
+            size="large"
+            style={{ marginBottom: 16 }}
+          />
+          <AntdButton
+            type="primary"
+            block
+            loading={passcodeLoading}
+            onClick={handlePasscodeSubmit}
+          >
+            Join Interview
+          </AntdButton>
+        </Modal>
+      )}
     </HomeContainer>
-  )
+  );
 }
 
 export default HomePage 

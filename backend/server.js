@@ -11,6 +11,10 @@ const { v4: uuidv4 } = require('uuid');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const multer = require('multer');
+const upload = multer({ dest: path.join(__dirname, 'uploads/') });
 
 const User = require('./src/models/User');
 const Interview = require('./src/models/Interview');
@@ -75,6 +79,12 @@ passport.use(new GoogleStrategy({
   try {
     let user = await User.findOne({ googleId: profile.id });
     if (!user) {
+      console.log('Creating user with:', {
+        googleId: profile.id,
+        name: profile.displayName,
+        email: profile.emails[0].value,
+        role: 'candidate'
+      });
       user = await User.create({
         googleId: profile.id,
         name: profile.displayName,
@@ -112,17 +122,31 @@ app.post('/api/auth/google', async (req, res) => {
     });
     
     const payload = ticket.getPayload();
-    const { sub: googleId, name, email } = payload;
-
+    console.log('Google payload:', payload); // Debug: print the payload
+    // Robust fallback for name
+    const { sub: googleId, name, given_name, family_name, email, picture } = payload;
+    const finalName = name || ((given_name && family_name) ? `${given_name} ${family_name}` : given_name || email || "Unknown");
+    console.log('Creating user with:', {
+      googleId,
+      name: finalName,
+      email,
+      picture,
+      role: role || 'candidate'
+    });
     // Find or create user
     let user = await User.findOne({ googleId });
     if (!user) {
       user = await User.create({
         googleId,
-        name,
+        name: finalName,
         email,
+        picture,
         role: role || 'candidate'
       });
+    } else if (role && user.role !== role) {
+      // Update role if provided and different
+      user.role = role;
+      await user.save();
     }
 
     // Generate JWT token
@@ -183,20 +207,106 @@ app.get('/api/candidates', verifyToken, async (req, res) => {
   }
 });
 
+// =================================================================================================
+// Email Service (integrated directly to avoid file issues)
+// =================================================================================================
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: process.env.EMAIL_SECURE === 'true',
+  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+});
+
+const sendInterviewScheduledEmail = async (interview) => {
+  const { candidateEmail, candidateName, interviewerEmail, title, position, scheduledTime, passcode } = interview;
+  const formattedDate = new Date(scheduledTime).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' });
+  const interviewUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/interview/${interview._id}`;
+  const commonEmailBody = `
+    <p>This is a confirmation that the following interview has been scheduled:</p>
+    <ul>
+      <li><strong>Title:</strong> ${title}</li>
+      <li><strong>Position:</strong> ${position}</li>
+      <li><strong>Date & Time:</strong> ${formattedDate}</li>
+    </ul>
+    <p>Please use the following details to join the session:</p>
+    <p><strong>Interview Link:</strong> <a href="${interviewUrl}">${interviewUrl}</a></p>
+    <p><strong>Passcode:</strong> ${passcode}</p>
+    <br/><p>Thank you,</p><p>The Koder Team</p>
+  `;
+  const candidateMailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: candidateEmail,
+    subject: `Interview Scheduled: ${title}`,
+    html: `<h2>Hello ${candidateName},</h2>${commonEmailBody}`,
+  };
+  const interviewerMailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: interviewerEmail,
+    subject: `You have scheduled an interview: ${title}`,
+    html: `<h2>Hello,</h2><p>You have successfully scheduled an interview with ${candidateName}.</p>${commonEmailBody}`,
+  };
+  try {
+    await Promise.all([
+      transporter.sendMail(candidateMailOptions),
+      transporter.sendMail(interviewerMailOptions)
+    ]);
+    console.log('✅ Interview notification emails sent successfully.');
+  } catch (error) {
+    console.error('❌ Error sending interview emails:', error);
+    // Do not re-throw, as this is a background task
+  }
+};
+// =================================================================================================
+
 // Interview Scheduling Endpoint
 app.post('/api/interviews', verifyToken, async (req, res) => {
   try {
-    const { candidateId, position, scheduledTime, title, duration, status } = req.body;
+    const { candidateId, candidateName, candidateEmail, position, scheduledTime, title, duration, status, interviewerEmail } = req.body;
 
-    // Basic validation
-    if (!candidateId || !position || !scheduledTime) {
-      return res.status(400).json({ message: 'Missing required interview details' });
+    // Basic validation - now candidateName and candidateEmail are required instead of candidateId
+    if (!candidateName || !candidateEmail || !position || !scheduledTime) {
+      return res.status(400).json({ message: 'Missing required interview details: candidate name, email, position, and scheduled time are required' });
     }
 
-    // Check if the candidate exists
-    const candidate = await User.findById(candidateId);
-    if (!candidate) {
-      return res.status(404).json({ message: 'Candidate not found' });
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(candidateEmail)) {
+      return res.status(400).json({ message: 'Invalid candidate email format' });
+    }
+
+    let candidate = null;
+    let candidateIdToUse = null;
+
+    // If candidateId is provided, verify the candidate exists
+    if (candidateId) {
+      candidate = await User.findById(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ message: 'Selected candidate not found' });
+      }
+      candidateIdToUse = candidateId;
+    } else {
+      // Check if a user with this email already exists
+      candidate = await User.findOne({ email: candidateEmail });
+      if (candidate) {
+        candidateIdToUse = candidate._id;
+      }
+      // If no existing user, we'll create the interview without linking to a user
+    }
+
+    // If interviewerEmail is provided, find the interviewer by email
+    let interviewerId = req.user.userId;
+    let interviewerEmailToSave = interviewerEmail;
+    if (interviewerEmail) {
+      const interviewerUser = await User.findOne({ email: interviewerEmail });
+      if (!interviewerUser) {
+        return res.status(404).json({ message: 'Interviewer not found for provided email' });
+      }
+      interviewerId = interviewerUser._id;
+      interviewerEmailToSave = interviewerUser.email;
+    } else {
+      // Use current user's email if not provided
+      const currentUser = await User.findById(req.user.userId);
+      interviewerEmailToSave = currentUser.email;
     }
 
     // Check if the scheduled time is in the future
@@ -205,23 +315,42 @@ app.post('/api/interviews', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'Interview must be scheduled for a future time' });
     }
 
+    const passcode = crypto.randomBytes(3).toString('hex').toUpperCase();
+
     const newInterview = new Interview({
-      candidate: candidateId,
-      interviewer: req.user.userId,
+      candidate: candidateIdToUse,
+      candidateName: candidateName,
+      candidateEmail: candidateEmail,
+      interviewer: interviewerId,
+      interviewerEmail: interviewerEmailToSave,
       position,
       scheduledTime: interviewTime,
       title: title || `Interview for ${position}`,
       duration: duration || 60,
-      status: status || 'scheduled'
+      status: status || 'scheduled',
+      passcode,
     });
 
     await newInterview.save();
+    
+    // Asynchronously send emails, don't block the response
+    sendInterviewScheduledEmail(newInterview).catch(err => {
+      console.error("Async email sending failed:", err);
+    });
 
-    // Add interview reference to both interviewer and candidate
-    await User.findByIdAndUpdate(req.user.userId, { $push: { interviews: newInterview._id } });
-    await User.findByIdAndUpdate(candidateId, { $push: { interviews: newInterview._id } });
+    // Add interview reference to interviewer
+    await User.findByIdAndUpdate(interviewerId, { $push: { interviews: newInterview._id } });
+    
+    // Add interview reference to candidate if they exist in the system
+    if (candidateIdToUse) {
+      await User.findByIdAndUpdate(candidateIdToUse, { $push: { interviews: newInterview._id } });
+    }
 
-    res.status(201).json({ message: 'Interview scheduled successfully', interview: newInterview });
+    res.status(201).json({ 
+      message: 'Interview scheduled successfully', 
+      interview: newInterview,
+      candidateExists: !!candidateIdToUse
+    });
 
   } catch (error) {
     console.error('Error scheduling interview:', error);
@@ -233,7 +362,6 @@ app.post('/api/interviews', verifyToken, async (req, res) => {
 app.get('/api/interviews/:interviewId', verifyToken, async (req, res) => {
   try {
     const interview = await Interview.findById(req.params.interviewId)
-      .populate('candidate', 'name email')
       .populate('interviewer', 'name email');
 
     if (!interview) {
@@ -241,9 +369,16 @@ app.get('/api/interviews/:interviewId', verifyToken, async (req, res) => {
     }
 
     // Check if the user is either the interviewer or candidate
-    if (interview.interviewer._id.toString() !== req.user.userId && 
-        interview.candidate._id.toString() !== req.user.userId) {
+    const isInterviewer = interview.interviewer._id.toString() === req.user.userId;
+    const isCandidate = interview.candidate && interview.candidate.toString() === req.user.userId;
+    
+    if (!isInterviewer && !isCandidate) {
       return res.status(403).json({ message: 'Not authorized to view this interview' });
+    }
+
+    // If candidate exists in User collection, populate it
+    if (interview.candidate) {
+      await interview.populate('candidate', 'name email');
     }
 
     res.json(interview);
@@ -331,9 +466,15 @@ app.get('/api/interviews', verifyToken, async (req, res) => {
         { candidate: req.user.userId }
       ]
     })
-    .populate('candidate', 'name email')
     .populate('interviewer', 'name email')
     .sort({ scheduledTime: 1 });
+
+    // Populate candidate data for interviews where candidate exists in User collection
+    for (let interview of interviews) {
+      if (interview.candidate) {
+        await interview.populate('candidate', 'name email');
+      }
+    }
 
     res.json(interviews);
   } catch (error) {
@@ -342,13 +483,209 @@ app.get('/api/interviews', verifyToken, async (req, res) => {
   }
 });
 
+// Start Interview and Generate URL
+app.post('/api/interviews/:interviewId/start', verifyToken, async (req, res) => {
+  try {
+    const interview = await Interview.findById(req.params.interviewId)
+      .populate('candidate', 'name email')
+      .populate('interviewer', 'name email');
+
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+
+    // Check if the user is the interviewer
+    if (interview.interviewer._id.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Only the interviewer can start the interview' });
+    }
+
+    // Check if the interview is already completed or cancelled
+    if (interview.status === 'completed' || interview.status === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot start a completed or cancelled interview' });
+    }
+
+    // Update interview status to in-progress
+    interview.status = 'in-progress';
+    interview.timer = {
+      startTime: new Date(),
+      duration: interview.duration * 60 * 1000, // Convert minutes to milliseconds
+      isRunning: true,
+      remainingTime: interview.duration * 60 * 1000
+    };
+
+    await interview.save();
+
+    // Generate interview URL
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const interviewUrl = `${baseUrl}/interview/${interview._id}`;
+
+    res.json({ 
+      message: 'Interview started successfully', 
+      interview,
+      interviewUrl,
+      timer: interview.timer
+    });
+  } catch (error) {
+    console.error('Error starting interview:', error);
+    res.status(500).json({ message: 'Failed to start interview', error: error.message });
+  }
+});
+
+// Get Interview URL
+app.get('/api/interviews/:interviewId/url', verifyToken, async (req, res) => {
+  try {
+    const interview = await Interview.findById(req.params.interviewId)
+      .populate('candidate', 'name email')
+      .populate('interviewer', 'name email');
+
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+
+    // Check if the user is either the interviewer or candidate
+    if (interview.interviewer._id.toString() !== req.user.userId && 
+        interview.candidate._id.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Not authorized to access this interview' });
+    }
+
+    // Generate interview URL
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const interviewUrl = `${baseUrl}/interview/${interview._id}`;
+
+    res.json({ 
+      interviewUrl,
+      interview,
+      canStart: interview.interviewer._id.toString() === req.user.userId && interview.status === 'scheduled'
+    });
+  } catch (error) {
+    console.error('Error generating interview URL:', error);
+    res.status(500).json({ message: 'Failed to generate interview URL', error: error.message });
+  }
+});
+
+// Verify user for an interview
+app.get('/api/interviews/:interviewId/verify-user', verifyToken, async (req, res) => {
+  try {
+    const interview = await Interview.findById(req.params.interviewId);
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(403).json({ message: 'User not found' });
+    }
+
+    const isInterviewer = interview.interviewerEmail === user.email;
+    const isCandidate = interview.candidateEmail === user.email;
+
+    if (isInterviewer || isCandidate) {
+      return res.status(200).json({ message: 'User is authorized' });
+    } else {
+      return res.status(403).json({ message: 'User is not authorized for this interview' });
+    }
+  } catch (error) {
+    console.error('Error verifying user:', error);
+    res.status(500).json({ message: 'Failed to verify user' });
+  }
+});
+
+// Replace or update the /api/interviews/:interviewId/join endpoint to allow passcode-only access
+app.post('/api/interviews/:interviewId/join', async (req, res) => {
+  try {
+    const { interviewId } = req.params;
+    const { passcode } = req.body;
+    if (!passcode) {
+      return res.status(400).json({ message: 'Passcode is required' });
+    }
+    const interview = await Interview.findById(interviewId);
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+    if (interview.passcode !== passcode) {
+      return res.status(401).json({ message: 'Invalid passcode' });
+    }
+    // Optionally: return only safe interview data
+    return res.json({ interview });
+  } catch (error) {
+    console.error('Join interview error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update interview details
+app.put('/api/interviews/:interviewId', verifyToken, async (req, res) => {
+  try {
+    const interview = await Interview.findById(req.params.interviewId);
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+
+    // Optionally, check if the user is authorized to update
+    if (interview.interviewer.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Not authorized to update this interview' });
+    }
+
+    // Only update fields if they are present in the request body
+    const updatableFields = [
+      'interviewerEmail', 'candidateName', 'candidateEmail', 'position',
+      'scheduledTime', 'title', 'duration', 'status', 'passcode'
+    ];
+    updatableFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        interview[field] = req.body[field];
+      }
+    });
+
+    await interview.save();
+    res.json({ message: 'Interview updated successfully', interview });
+  } catch (error) {
+    console.error('Error updating interview:', error);
+    res.status(500).json({ message: 'Failed to update interview', error: error.message });
+  }
+});
+
+// Delete interview
+app.delete('/api/interviews/:interviewId', verifyToken, async (req, res) => {
+  try {
+    const interview = await Interview.findById(req.params.interviewId);
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+    // Only the interviewer can delete
+    if (interview.interviewer.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Not authorized to delete this interview' });
+    }
+    await interview.deleteOne();
+    res.json({ message: 'Interview deleted successfully', interview });
+  } catch (error) {
+    console.error('Error deleting interview:', error);
+    res.status(500).json({ message: 'Failed to delete interview', error: error.message });
+  }
+});
+
+// Add this endpoint after other app.post/app.get routes
+app.post('/api/interviews/find-by-passcode', async (req, res) => {
+  try {
+    const { passcode } = req.body;
+    if (!passcode) {
+      return res.status(400).json({ message: 'Passcode is required' });
+    }
+    const interview = await Interview.findOne({ passcode });
+    if (!interview) {
+      return res.status(404).json({ message: 'Invalid passcode' });
+    }
+    return res.json({ interviewId: interview._id });
+  } catch (error) {
+    console.error('Error in find-by-passcode:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/koder', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ Connected to MongoDB'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/koder')
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Judge0 code execution
 const JUDGE0_BASE_URL = 'https://judge0-ce.p.rapidapi.com/submissions';
@@ -425,12 +762,141 @@ io.on('connection', (socket) => {
   });
 
   socket.on('executeCode', async (data) => {
-    const { language, code } = data;
+    const { interviewId, language, code } = data;
+    console.log(`⚡ executeCode received: interviewId=${interviewId}, socket=${socket.id}`);
     const result = await executeCode(language, code);
-    socket.emit('codeOutput', result);
+    if (interviewId) {
+      console.log(`🔊 Emitting codeOutput to room: ${interviewId}`);
+      io.to(interviewId).emit('codeOutput', { ...result, interviewId });
+    } else {
+      console.log(`🔊 Emitting codeOutput to socket: ${socket.id}`);
+      socket.emit('codeOutput', result);
+    }
+  });
+
+  socket.on('startTimer', async ({ interviewId }) => {
+    try {
+      const interview = await Interview.findById(interviewId);
+      if (interview && !interview.timer.isRunning) {
+        if (!interview.timer) interview.timer = {};
+        interview.timer.startTime = new Date();
+        interview.timer.isRunning = true;
+        interview.status = 'in-progress';
+        await interview.save();
+        io.to(interviewId).emit('timerStarted', { 
+          interviewId, 
+          startTime: interview.timer.startTime,
+          elapsedSeconds: interview.timer.elapsedSeconds 
+        });
+      }
+    } catch (error) {
+      console.error('Error starting/resuming timer:', error);
+      socket.emit('timerError', { message: 'Failed to start timer' });
+    }
+  });
+
+  socket.on('stopTimer', async ({ interviewId }) => {
+    try {
+      const interview = await Interview.findById(interviewId);
+      if (interview && interview.timer.isRunning) {
+        const now = new Date();
+        const start = new Date(interview.timer.startTime);
+        const elapsed = (now - start) / 1000;
+        
+        interview.timer.elapsedSeconds += elapsed;
+        interview.timer.isRunning = false;
+        interview.timer.startTime = null;
+
+        await interview.save();
+        io.to(interviewId).emit('timerStopped', { 
+          interviewId, 
+          elapsedSeconds: interview.timer.elapsedSeconds 
+        });
+      }
+    } catch (error) {
+      console.error('Error stopping timer:', error);
+      socket.emit('timerError', { message: 'Failed to stop timer' });
+    }
+  });
+
+  socket.on('restartTimer', async ({ interviewId }) => {
+    try {
+      const interview = await Interview.findById(interviewId);
+      if (interview) {
+        if (!interview.timer) interview.timer = {};
+        interview.timer.startTime = new Date();
+        interview.timer.elapsedSeconds = 0;
+        interview.timer.isRunning = true;
+        await interview.save();
+        io.to(interviewId).emit('timerStarted', { 
+          interviewId, 
+          startTime: interview.timer.startTime, 
+          elapsedSeconds: 0 
+        });
+      }
+    } catch (error) {
+      console.error('Error restarting timer:', error);
+      socket.emit('timerError', { message: 'Failed to restart timer' });
+    }
+  });
+
+  // Multi-user video chat and chat signaling
+  // Store users in each interview video room
+  const videoRooms = io.videoRooms || (io.videoRooms = {});
+
+  socket.on('join-video-room', ({ interviewId, userId }) => {
+    const room = interviewId + '-video';
+    socket.join(room);
+    if (!videoRooms[room]) videoRooms[room] = {};
+    videoRooms[room][socket.id] = { userId };
+    // Notify all users in the room of the new participant list
+    io.to(room).emit('video-participants', Object.keys(videoRooms[room]).map(id => ({ id, userId: videoRooms[room][id].userId })));
+    // Notify others to initiate connection
+    socket.to(room).emit('video-initiate', { to: socket.id });
+  });
+
+  socket.on('video-signal', ({ signal, to, interviewId }) => {
+    io.to(to).emit('video-signal', { signal, from: socket.id });
+  });
+
+  socket.on('leave-video-room', ({ interviewId }) => {
+    const room = interviewId + '-video';
+    socket.leave(room);
+    if (videoRooms[room]) {
+      delete videoRooms[room][socket.id];
+      io.to(room).emit('video-participants', Object.keys(videoRooms[room]).map(id => ({ id, userId: videoRooms[room][id].userId })));
+    }
+  });
+
+  socket.on('video-chat-message', ({ interviewId, userId, message }) => {
+    const room = interviewId + '-video';
+    io.to(room).emit('video-chat-message', { userId, message, timestamp: Date.now() });
+  });
+
+  socket.on('video-chat-dm', ({ interviewId, fromUserId, toSocketId, message }) => {
+    // Send to recipient and sender only
+    io.to(toSocketId).emit('video-chat-dm', { fromUserId, message, timestamp: Date.now(), private: true });
+    socket.emit('video-chat-dm', { fromUserId, message, timestamp: Date.now(), private: true });
+  });
+
+  socket.on('raise-hand', ({ interviewId, userId }) => {
+    const room = interviewId + '-video';
+    io.to(room).emit('raise-hand', { userId });
+  });
+
+  socket.on('emoji-reaction', ({ interviewId, userId, emoji }) => {
+    const room = interviewId + '-video';
+    io.to(room).emit('emoji-reaction', { userId, emoji, timestamp: Date.now() });
   });
 
   socket.on('disconnect', () => {
+    // Remove from all video rooms
+    Object.keys(videoRooms).forEach(room => {
+      if (videoRooms[room][socket.id]) {
+        delete videoRooms[room][socket.id];
+        io.to(room).emit('video-participants', Object.keys(videoRooms[room]).map(id => ({ id, userId: videoRooms[room][id].userId })));
+      }
+    });
     console.log(`❌ Client disconnected: ${socket.id}`);
   });
 });
@@ -442,8 +908,16 @@ app.get('/api/interviewer/interviews', verifyToken, async (req, res) => {
     console.log('Handling /api/interviewer/interviews request'); // Log inside the handler
     const interviewerId = req.user.userId;
     const interviews = await Interview.find({ interviewer: interviewerId })
-      .populate('candidate', 'name email') // Populate candidate details
+      .populate('interviewer', 'name email') // Populate interviewer details
       .sort('scheduledTime'); // Sort by scheduled time
+
+    // Populate candidate data for interviews where candidate exists in User collection
+    for (let interview of interviews) {
+      if (interview.candidate) {
+        await interview.populate('candidate', 'name email');
+      }
+    }
+
     res.json(interviews);
   } catch (error) {
     console.error('Error fetching interviewer interviews:', error);
@@ -478,6 +952,58 @@ app.get('/api/interviewer/stats', verifyToken, async (req, res) => {
   }
 });
 
+// Feedback for Interview
+app.post('/api/interviews/:interviewId/feedback', verifyToken, async (req, res) => {
+  try {
+    const { rating, comments } = req.body;
+    const interview = await Interview.findById(req.params.interviewId);
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+    // Only interviewer or candidate can submit feedback
+    if (
+      interview.interviewer.toString() !== req.user.userId &&
+      interview.candidate.toString() !== req.user.userId
+    ) {
+      return res.status(403).json({ message: 'Not authorized to submit feedback for this interview' });
+    }
+    // Validate rating
+    if (rating && (rating < 1 || rating > 5)) {
+      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+    // Update feedback
+    interview.feedback = {
+      rating: rating ?? interview.feedback?.rating,
+      comments: comments ?? interview.feedback?.comments
+    };
+    await interview.save();
+    res.json({ message: 'Feedback submitted successfully', feedback: interview.feedback });
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    res.status(500).json({ message: 'Failed to submit feedback' });
+  }
+});
+
+app.get('/api/interviews/:interviewId/feedback', verifyToken, async (req, res) => {
+  try {
+    const interview = await Interview.findById(req.params.interviewId);
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+    // Only interviewer or candidate can view feedback
+    if (
+      interview.interviewer.toString() !== req.user.userId &&
+      interview.candidate.toString() !== req.user.userId
+    ) {
+      return res.status(403).json({ message: 'Not authorized to view feedback for this interview' });
+    }
+    res.json({ feedback: interview.feedback });
+  } catch (error) {
+    console.error('Error fetching feedback:', error);
+    res.status(500).json({ message: 'Failed to fetch feedback' });
+  }
+});
+
 // Default route
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Koder API!' });
@@ -496,4 +1022,14 @@ app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist'))); // Comm
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html')); // Common path for Vite/React build
+});
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// File upload endpoint
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  const fileUrl = `/uploads/${req.file.filename}`;
+  res.json({ url: fileUrl, originalName: req.file.originalname });
 });

@@ -16,6 +16,17 @@ const decodeToken = (token) => {
   }
 };
 
+// Helper function to check if token is valid and not expired
+const isTokenValid = (token) => {
+  if (!token) return false;
+  try {
+    const decoded = decodeToken(token);
+    return decoded && decoded.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+};
+
 // Helper function to clean up localStorage
 const cleanupLocalStorage = () => {
   localStorage.removeItem('token');
@@ -28,11 +39,14 @@ const cleanupLocalStorage = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState(() => localStorage.getItem('selectedRole') || null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
+    console.log('[AuthContext] Initial token:', token);
+    console.log('[AuthContext] Initial userData:', userData);
     
     if (token && userData) {
       try {
@@ -52,6 +66,7 @@ export const AuthProvider = ({ children }) => {
       }
     }
     setLoading(false);
+    console.log('[AuthContext] After init:', { user, loading, isAuthenticated: !loading && !!user && isTokenValid(token) });
 
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
@@ -64,6 +79,15 @@ export const AuthProvider = ({ children }) => {
       if (script) script.remove();
     };
   }, []);
+
+  // Persist selectedRole to localStorage
+  useEffect(() => {
+    if (selectedRole) {
+      localStorage.setItem('selectedRole', selectedRole);
+    } else {
+      localStorage.removeItem('selectedRole');
+    }
+  }, [selectedRole]);
 
   // Regular login
   const login = async (email, password, role) => {
@@ -88,10 +112,14 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-
-      // Role-based navigation
+      console.log('[AuthContext] After login:', { user: userData, token, isAuthenticated: isTokenValid(token) });
+      // Role-based navigation with redirect support
       const decodedToken = decodeToken(token);
-      if (decodedToken?.role === 'interviewer') {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      if (redirect) {
+        navigate(redirect);
+      } else if (decodedToken?.role === 'interviewer') {
         navigate('/interviewer-dashboard');
       } else {
         navigate('/home');
@@ -138,10 +166,14 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-
-      // Role-based navigation using decoded token
+      console.log('[AuthContext] After login:', { user: userData, token, isAuthenticated: isTokenValid(token) });
+      // Role-based navigation with redirect support
       const decodedToken = decodeToken(token);
-      if (decodedToken?.role === 'interviewer') {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      if (redirect) {
+        navigate(redirect);
+      } else if (decodedToken?.role === 'interviewer') {
         navigate('/interviewer-dashboard');
       } else {
         navigate('/home');
@@ -166,8 +198,10 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     handleGoogleAuth,
-    isAuthenticated: !!user,
+    isAuthenticated: !loading && !!user && isTokenValid(localStorage.getItem('token')),
     userRole: user?.role,
+    selectedRole,
+    setSelectedRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -37,9 +37,15 @@ const interviewSchema = new mongoose.Schema({
   },
   timer: {
     startTime: Date,
+    elapsedSeconds: {
+      type: Number,
+      default: 0
+    },
     duration: Number,
-    isRunning: Boolean,
-    remainingTime: Number
+    isRunning: {
+      type: Boolean,
+      default: false
+    }
   },
   feedback: {
     rating: {
@@ -48,6 +54,28 @@ const interviewSchema = new mongoose.Schema({
       max: 5
     },
     comments: String
+  },
+  candidateName: {
+    type: String,
+    required: true
+  },
+  candidateEmail: {
+    type: String,
+    required: true,
+    trim: true,
+    lowercase: true
+  },
+  position: {
+    type: String,
+    required: false
+  },
+  interviewerEmail: {
+    type: String,
+    required: true
+  },
+  passcode: {
+    type: String,
+    required: true
   }
 }, {
   timestamps: true

@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Table, Statistic, Modal, Form, Input, DatePicker, TimePicker, Select, message, Badge, Tooltip, Space } from 'antd';
+import { Card, Button, Table, Modal, Form, Input, Select, message, Badge, Tooltip, Space, Rate, DatePicker, TimePicker } from 'antd';
 import { 
-  CalendarOutlined, 
-  UserOutlined, 
-  CheckCircleOutlined, 
-  ClockCircleOutlined, 
-  PlusOutlined,
-  VideoCameraOutlined,
-  FileTextOutlined,
   SettingOutlined,
   BellOutlined,
-  TeamOutlined,
   DashboardOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  StarFilled,
+  FrownOutlined,
+  ShareAltOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import styled from '@emotion/styled';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import './InterviewerDashboard.css';
 import { useAuth } from '../contexts/AuthContext';
+import { generateInterviewUrl, shareInterviewUrl, canStartInterview, getInterviewStatusColor } from '../utils/interviewUtils';
+import dayjs from 'dayjs';
+import { Modal as AntdModal } from 'antd';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 
 const { Option } = Select;
 
@@ -60,6 +65,17 @@ const DashboardContainer = styled(motion.div)`
   }
 `;
 
+const PositionTag = styled.div`
+  background: rgba(97, 218, 251, 0.1);
+  color: #61dafb;
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-block;
+  border: 1px solid rgba(97, 218, 251, 0.2);
+`;
+
 const Header = styled(motion.div)`
   width: 100%;
   display: flex;
@@ -72,47 +88,6 @@ const Header = styled(motion.div)`
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-`;
-
-const QuickActions = styled(motion.div)`
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  width: 100%;
-  flex-wrap: wrap;
-  justify-content: center;
-`;
-
-const QuickActionButton = styled(motion.button)`
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(45deg, #61DAFB, #007ACC);
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  transition: all 0.3s ease;
-  min-width: 220px;
-  justify-content: center;
-
-  &:hover {
-    background: linear-gradient(45deg, #007ACC, #61DAFB);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 122, 204, 0.4);
-  }
-
-  &:active {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(0, 122, 204, 0.3);
-  }
-
-  svg {
-    font-size: 1.4rem;
-  }
 `;
 
 const Title = styled(motion.h1)`
@@ -160,7 +135,7 @@ const StyledCard = styled(motion(Card))`
 `;
 
 const StyledButton = styled(Button)`
-  background: linear-gradient(45deg, #61DAFB, #007ACC);
+  background: linear-gradient(45deg,rgba(6, 75, 95, 0.28), #007ACC);
   border: none;
   height: 45px;
   font-size: 1.1rem;
@@ -168,6 +143,7 @@ const StyledButton = styled(Button)`
   display: flex;
   align-items: center;
   gap: 8px;
+  color: white;
   transition: all 0.3s ease;
   font-weight: 600;
 
@@ -182,39 +158,42 @@ const NotificationBadge = styled(Badge)`
   .ant-badge-count {
     background: #61dafb;
     box-shadow: 0 0 12px rgba(97, 218, 251, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: #000;
   }
 `;
 
-// Animation variants for table rows
-const rowVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.1,
-      duration: 0.5,
-      ease: "easeOut"
-    },
-  }),
-};
-
-// Custom row component for Ant Design Table with Framer Motion
 const MotionTr = ({ children, ...props }) => {
-  const index = props['data-row-key']; // Ant Design uses data-row-key for row key
+  const rowVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } }
+  };
   return (
-    <motion.tr
-      {...props}
-      variants={rowVariants}
-      initial="hidden"
-      animate="visible"
-      custom={index}
+    <motion.tr 
+      {...props} 
+      variants={rowVariants} 
+      initial="hidden" 
+      animate="visible" 
+      exit="hidden"
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      style={{ height: 38 }}
     >
       {children}
     </motion.tr>
   );
 };
+
+const CustomEmpty = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    style={{ textAlign: 'center', padding: '2rem', color: '#888' }}
+  >
+    <FrownOutlined style={{ fontSize: '3rem', marginBottom: '1rem' }} />
+    <p>No interviews found.</p>
+  </motion.div>
+);
 
 const InterviewerDashboard = () => {
   const [upcomingInterviews, setUpcomingInterviews] = useState([]);
@@ -224,10 +203,16 @@ const InterviewerDashboard = () => {
     pendingInterviews: 0,
     averageRating: 0,
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editingInterview, setEditingInterview] = useState(null);
   const [form] = Form.useForm();
   const { logout, user } = useAuth();
-  const [candidates, setCandidates] = useState([]);
+  const [feedbackModal, setFeedbackModal] = useState({ visible: false, interview: null, loading: false, feedback: null });
+  const navigate = useNavigate();
+  const [sortOption, setSortOption] = useState('closest');
 
   useEffect(() => {
     // Verify user role on component mount
@@ -239,51 +224,7 @@ const InterviewerDashboard = () => {
     
     fetchInterviews();
     fetchStats();
-    fetchCandidates();
   }, [user, logout]);
-
-  const fetchCandidates = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        message.error('Authentication required');
-        logout();
-        return;
-      }
-
-      const response = await fetch('/api/candidates', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          message.error('Session expired. Please log in again.');
-          logout();
-          return;
-        }
-        // Attempt to parse JSON, but fallback to text if it fails
-        let errorDetails = `Error ${response.status}: ${response.statusText}`;
-        try {
-          const errorData = await response.json();
-          errorDetails = errorData.message || JSON.stringify(errorData);
-        } catch (jsonError) {
-          const textResponse = await response.text();
-          errorDetails = `Error ${response.status}: ${response.statusText}. Response was not valid JSON: ${textResponse.substring(0, 100)}...`;
-        }
-        console.error('Failed to fetch candidates:', response.status, errorDetails);
-        throw new Error(errorDetails);
-      }
-
-      const data = await response.json();
-      console.log('Fetched candidates data:', data);
-      setCandidates(data);
-    } catch (error) {
-      console.error('Error fetching candidates:', error);
-      message.error(`Failed to fetch candidates: ${error.message}`);
-    }
-  };
 
   const fetchInterviews = async () => {
     try {
@@ -323,10 +264,10 @@ const InterviewerDashboard = () => {
       const formattedData = data.map((interview, index) => ({
         ...interview,
         key: interview.id || interview._id || index,
-        date: new Date(interview.scheduledTime).toLocaleDateString(),
-        time: new Date(interview.scheduledTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        candidateName: interview.candidate ? interview.candidate.name : 'N/A',
-        candidateEmail: interview.candidate ? interview.candidate.email : 'N/A',
+        date: dayjs.utc(interview.scheduledTime).format('YYYY-MM-DD'),
+        time: dayjs.utc(interview.scheduledTime).format('HH:mm'),
+        candidateName: interview.candidate ? interview.candidate.name : interview.candidateName || 'N/A',
+        candidateEmail: interview.candidate ? interview.candidate.email : interview.candidateEmail || 'N/A',
         skills: interview.skills || [],
       }));
       setUpcomingInterviews(formattedData);
@@ -380,32 +321,28 @@ const InterviewerDashboard = () => {
 
   const handleScheduleInterview = async (values) => {
     try {
-      // TODO: Replace with actual API call
-      // console.log('Scheduling interview:', values);
       const token = localStorage.getItem('token');
       if (!token) {
         message.error('User not authenticated.');
         return;
       }
 
-      // Format date and time for the backend
       const formattedDate = values.date.format('YYYY-MM-DD');
       const formattedTime = values.time.format('HH:mm');
+      const position = Array.isArray(values.position) && values.position.length > 0
+        ? values.position[0] 
+        : values.position;
 
-      // Construct the interview data payload
       const interviewData = {
-        candidateId: values.candidateId,
-        position: values.position,
-        scheduledTime: `${formattedDate}T${formattedTime}:00Z`, // Assuming backend expects ISO 8601 format
-        // Add other relevant fields like title, duration, etc., if needed by backend
-        title: `Interview for ${values.position}`, // Example title
-        duration: 60, // Defaulting duration to 60 minutes
-        status: 'Scheduled' // Initial status
+        interviewerEmail: values.interviewerEmail,
+        candidateName: values.candidateName,
+        candidateEmail: values.candidateEmail,
+        position: position,
+        scheduledTime: `${formattedDate}T${formattedTime}:00Z`,
+        title: `Interview for ${position}`,
+        duration: 60,
+        status: 'scheduled'
       };
-
-      // This is the frontend part ready to send data to the backend.
-      // The actual backend endpoint needs to be implemented to handle this request.
-      console.log('Attempting to schedule interview with data:', interviewData);
 
       const response = await fetch('/api/interviews', {
         method: 'POST',
@@ -419,41 +356,201 @@ const InterviewerDashboard = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        // Handle backend errors
         throw new Error(result.message || 'Failed to schedule interview');
       }
 
       message.success(result.message || 'Interview scheduled successfully');
       setIsModalVisible(false);
       form.resetFields();
-      fetchInterviews(); // Refresh the interview list
+      fetchInterviews();
     } catch (error) {
       console.error('Scheduling interview error:', error);
       message.error(error.message || 'Failed to schedule interview');
     }
   };
 
-  const handleQuickAction = (action) => {
-    switch (action) {
-      case 'schedule':
-        setIsModalVisible(true);
+  const openFeedbackModal = async (interview) => {
+    setFeedbackModal({ visible: true, interview, loading: true, feedback: null });
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/interviews/${interview.id}/feedback`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setFeedbackModal((prev) => ({ ...prev, loading: false, feedback: data.feedback || {} }));
+    } catch {
+      setFeedbackModal((prev) => ({ ...prev, loading: false, feedback: {} }));
+      message.error('Failed to load feedback');
+    }
+  };
+
+  const closeFeedbackModal = () => setFeedbackModal({ visible: false, interview: null, loading: false, feedback: null });
+
+  const handleFeedbackSubmit = async (values) => {
+    setFeedbackModal((prev) => ({ ...prev, loading: true }));
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/interviews/${feedbackModal.interview.id}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) throw new Error('Failed to submit feedback');
+      message.success('Feedback submitted!');
+      setFeedbackModal((prev) => ({ ...prev, loading: false, feedback: values }));
+      fetchStats(); // Refresh stats if needed
+    } catch {
+      setFeedbackModal((prev) => ({ ...prev, loading: false }));
+      message.error('Failed to submit feedback');
+    }
+  };
+
+  const handleShareInterview = async (interview) => {
+    try {
+      const interviewUrl = generateInterviewUrl(interview.id || interview._id);
+      const success = await shareInterviewUrl(interviewUrl, interview.title);
+      
+      if (success) {
+        message.success('Interview URL copied to clipboard!');
+      } else {
+        message.error('An unexpected error occurred while sharing the interview.');
+      }
+    } catch (error) {
+      console.error('Error sharing interview:', error);
+      message.error('An unexpected error occurred while sharing the interview.');
+    }
+  };
+
+  const handleStartInterview = async (interview) => {
+    const interviewUrl = generateInterviewUrl(interview.id || interview._id);
+    window.open(interviewUrl, '_blank');
+  };
+
+  const handleDeleteInterview = async (interview) => {
+    AntdModal.confirm({
+      title: 'Delete Interview',
+      content: 'Are you sure you want to delete this interview? This action cannot be undone.',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            message.error('User not authenticated.');
+            return;
+          }
+          const response = await fetch(`/api/interviews/${interview.id || interview._id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || 'Failed to delete interview');
+          }
+          message.success(result.message || 'Interview deleted successfully');
+          fetchInterviews();
+        } catch (error) {
+          console.error('Delete interview error:', error);
+          message.error(error.message || 'Failed to delete interview');
+        }
+      },
+    });
+  };
+
+  const handleEditInterview = (interview) => {
+    setEditingInterview(interview);
+    setIsEditModalVisible(true);
+    const utcDate = interview.scheduledTime ? dayjs.utc(interview.scheduledTime) : null;
+    form.setFieldsValue({
+      interviewerEmail: interview.interviewerEmail,
+      candidateName: interview.candidateName,
+      candidateEmail: interview.candidateEmail,
+      position: interview.position,
+      date: utcDate,
+      time: utcDate,
+    });
+  };
+
+  const handleUpdateInterview = async (values) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        message.error('User not authenticated.');
+        return;
+      }
+      // Combine date and time as UTC
+      const dateUtc = values.date ? dayjs.utc(values.date) : null;
+      const timeUtc = values.time ? dayjs.utc(values.time) : null;
+      let scheduledTime = null;
+      if (dateUtc && timeUtc) {
+        scheduledTime = dayjs.utc(dateUtc)
+          .hour(timeUtc.hour())
+          .minute(timeUtc.minute())
+          .second(0)
+          .millisecond(0)
+          .toISOString();
+      }
+      const position = Array.isArray(values.position) && values.position.length > 0
+        ? values.position[0]
+        : values.position;
+      const interviewData = {
+        interviewerEmail: values.interviewerEmail,
+        candidateName: values.candidateName,
+        candidateEmail: values.candidateEmail,
+        position: position,
+        scheduledTime: scheduledTime,
+        title: `Interview for ${position}`,
+        duration: 60,
+        status: editingInterview.status,
+        passcode: editingInterview.passcode
+      };
+      const response = await fetch(`/api/interviews/${editingInterview.id || editingInterview._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(interviewData),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to update interview');
+      }
+      message.success(result.message || 'Interview updated successfully');
+      setIsEditModalVisible(false);
+      setEditingInterview(null);
+      form.resetFields();
+      fetchInterviews();
+    } catch (error) {
+      console.error('Updating interview error:', error);
+      message.error(error.message || 'Failed to update interview');
+    }
+  };
+
+  const getSortedInterviews = (interviews) => {
+    const sorted = [...interviews];
+    switch (sortOption) {
+      case 'farthest':
+        sorted.sort((a, b) => new Date(b.scheduledTime) - new Date(a.scheduledTime));
         break;
-      case 'start':
-        // Handle start interview - Placeholder
-        message.info('Starting interview...');
-        // window.location.href = `/interview/${record.id}` // Need to determine which interview to start
+      case 'candidateAZ':
+        sorted.sort((a, b) => (a.candidateName || '').localeCompare(b.candidateName || ''));
         break;
-      case 'feedback':
-        // Handle feedback - Placeholder
-        message.info('Opening feedback form...');
+      case 'candidateZA':
+        sorted.sort((a, b) => (b.candidateName || '').localeCompare(a.candidateName || ''));
         break;
-      case 'manage_team':
-        // Handle manage team - Placeholder
-        message.info('Opening team management...');
+      case 'statusAZ':
+        sorted.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
         break;
+      case 'closest':
       default:
+        sorted.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
         break;
     }
+    return sorted;
   };
 
   const columns = [
@@ -472,21 +569,10 @@ const InterviewerDashboard = () => {
       title: 'Position',
       dataIndex: 'position',
       key: 'position',
-      render: (text) => <div>{text}</div>
-    },
-    {
-      title: 'Skills',
-      dataIndex: 'skills',
-      key: 'skills',
-      render: (skills) => (
-        <div className="skills-container">
-          {skills.map((skill) => (
-            <span key={skill} className="skill-tag">
-              {skill}
-            </span>
-          ))}
-        </div>
-      ),
+      render: (position) => {
+        const positionText = Array.isArray(position) ? position.join(', ') : position;
+        return positionText ? <PositionTag>{positionText}</PositionTag> : null;
+      },
     },
     {
       title: 'Date & Time',
@@ -512,18 +598,70 @@ const InterviewerDashboard = () => {
       title: 'Action',
       key: 'action',
       render: (_, record) => (
-        <div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <StyledButton
-            type="primary"
+            type="default"
             size="small"
-            onClick={() => window.location.href = `/interview/${record.id}`}
-          >
-            Start Interview
-          </StyledButton>
+            style={{ background: 'transparent', color: '#61dafb', border: 'none', minWidth: 32, padding: 0 }}
+            icon={<EditOutlined style={{ fontSize: 18 }} />}
+            onClick={() => handleEditInterview(record)}
+          />
+          {canStartInterview(record, user?.id) ? (
+            <StyledButton
+              type="primary"
+              size="small"
+              onClick={() => handleStartInterview(record)}
+            >
+              Start Interview
+            </StyledButton>
+          ) : (
+            <StyledButton
+              type="primary"
+              size="small"
+              onClick={() => navigate(`/interview/${record.id || record._id}`)}
+            >
+              {record.status === 'in-progress' ? 'Join Interview' : 'View Interview'}
+            </StyledButton>
+          )}
+          <StyledButton
+            type="default"
+            size="small"
+            icon={<ShareAltOutlined />}
+            onClick={() => handleShareInterview(record)}
+            style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#fff', minWidth: 32, padding: 0 }}
+          />
+          <StyledButton
+            type="default"
+            size="small"
+            danger
+            style={{ background: 'transparent', color: '#ff4d4f', border: 'none', minWidth: 32, padding: 0 }}
+            icon={<DeleteOutlined style={{ fontSize: 18 }} />}
+            onClick={() => handleDeleteInterview(record)}
+          />
+          <StyledButton
+            type="default"
+            size="small"
+            style={{ background: 'linear-gradient(45deg, #232B3E, #181F2A)', color: '#FFD700', border: 'none', minWidth: 32, padding: 0 }}
+            onClick={() => openFeedbackModal(record)}
+            icon={<StarFilled />}
+          />
         </div>
       ),
     },
   ];
+
+  const filteredInterviews = upcomingInterviews.filter(interview => {
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = (
+        (interview.candidateName && interview.candidateName.toLowerCase().includes(searchLower)) ||
+        (interview.candidateEmail && interview.candidateEmail.toLowerCase().includes(searchLower)) ||
+        (interview.position && interview.position.toLowerCase().includes(searchLower))
+    );
+    const matchesStatus = statusFilter === 'all' || (interview.status && interview.status.toLowerCase() === statusFilter);
+    return matchesSearch && matchesStatus;
+  });
+
+  const sortedInterviews = getSortedInterviews(filteredInterviews);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -554,11 +692,13 @@ const InterviewerDashboard = () => {
       animate="visible"
     >
       <Header variants={itemVariants}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
           <DashboardOutlined style={{ fontSize: '1.8rem', color: '#61dafb' }} />
-          <h2 style={{ margin: 0, color: '#fff', fontSize: '1.8rem' }}>Interviewer Dashboard</h2>
+          <h2 style={{ margin: 0, color: '#fff', fontSize: '1.8rem', fontWeight: 800, letterSpacing: 0.5 }}>Interviewer Dashboard</h2>
         </div>
-        <Space size="large">
+        <Space size="large" style={{ gap: '1.2rem', alignItems: 'center' }}>
+          <Button type="primary" style={{ background: 'linear-gradient(45deg,rgba(6, 75, 95, 0.28), #007ACC)' }} icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Schedule Interview</Button>
+          <Button icon={<ReloadOutlined />} onClick={() => { fetchInterviews(); fetchStats(); }}>Refresh</Button>
           <Tooltip title="Notifications">
             <NotificationBadge count={5}>
               <Button type="text" icon={<BellOutlined style={{ fontSize: '1.4rem', color: '#fff' }} />} />
@@ -573,109 +713,54 @@ const InterviewerDashboard = () => {
         </Space>
       </Header>
 
-      <QuickActions variants={containerVariants} initial="hidden" animate="visible">
-        <QuickActionButton
-          variants={itemVariants}
-          whileHover={{ scale: 1.03, boxShadow: '0 10px 25px rgba(0, 122, 204, 0.5)' }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => handleQuickAction('schedule')}
-        >
-          <PlusOutlined />
-          Schedule Interview
-        </QuickActionButton>
-        <QuickActionButton
-          variants={itemVariants}
-          whileHover={{ scale: 1.03, boxShadow: '0 10px 25px rgba(0, 122, 204, 0.5)' }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => handleQuickAction('start')}
-        >
-          <VideoCameraOutlined />
-          Start Interview
-        </QuickActionButton>
-        <QuickActionButton
-          variants={itemVariants}
-          whileHover={{ scale: 1.03, boxShadow: '0 10px 25px rgba(0, 122, 204, 0.5)' }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => handleQuickAction('feedback')}
-        >
-          <FileTextOutlined />
-          Give Feedback
-        </QuickActionButton>
-        <QuickActionButton
-          variants={itemVariants}
-          whileHover={{ scale: 1.03, boxShadow: '0 10px 25px rgba(0, 122, 204, 0.5)' }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => handleQuickAction('manage_team')}
-        >
-          <TeamOutlined />
-          Manage Team
-        </QuickActionButton>
-      </QuickActions>
-
-      <Row gutter={[24, 24]} className="stats-row">
-        <Col xs={24} sm={12} md={6}>
-          <StyledCard variants={itemVariants} whileHover={{ scale: 1.03 }}>
-            <Statistic
-              title="Total Interviews"
-              value={stats.totalInterviews}
-              prefix={<CalendarOutlined style={{ color: '#61dafb' }} />}
-            />
-          </StyledCard>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <StyledCard variants={itemVariants} whileHover={{ scale: 1.03 }}>
-            <Statistic
-              title="Completed"
-              value={stats.completedInterviews}
-              prefix={<CheckCircleOutlined style={{ color: '#61dafb' }} />}
-              valueStyle={{ color: '#61DAFB' }}
-            />
-          </StyledCard>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <StyledCard variants={itemVariants} whileHover={{ scale: 1.03 }}>
-            <Statistic
-              title="Pending"
-              value={stats.pendingInterviews}
-              prefix={<ClockCircleOutlined style={{ color: '#007acc' }} />}
-              valueStyle={{ color: '#007ACC' }}
-            />
-          </StyledCard>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <StyledCard variants={itemVariants} whileHover={{ scale: 1.03 }}>
-            <Statistic
-              title="Average Rating"
-              value={stats.averageRating}
-              precision={1}
-              prefix={<UserOutlined style={{ color: '#61dafb' }} />}
-              valueStyle={{ color: '#61DAFB' }}
-            />
-          </StyledCard>
-        </Col>
-      </Row>
-
       <StyledCard
         title="Upcoming Interviews"
         className="interviews-card"
         variants={itemVariants}
         extra={
-          <StyledButton
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => handleQuickAction('schedule')}
-          >
-            Schedule Interview
-          </StyledButton>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <Input.Search
+              placeholder="Search..."
+              onSearch={value => setSearchQuery(value)}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="dark-input"
+            />
+            <Select
+              defaultValue="all"
+              onChange={value => setStatusFilter(value)}
+              style={{ width: 170 }}
+              className="status-filter-modern"
+              popupClassName="dark-select-dropdown"
+            >
+              <Option value="all">All Statuses</Option>
+              <Option value="scheduled">Scheduled</Option>
+              <Option value="in-progress">In Progress</Option>
+              <Option value="completed">Completed</Option>
+            </Select>
+            <Select
+              value={sortOption}
+              onChange={setSortOption}
+              style={{ width: 170 }}
+              className="status-filter-modern"
+              popupClassName="dark-select-dropdown"
+            >
+              <Option value="closest">Closest (Soonest)</Option>
+              <Option value="farthest">Farthest (Latest)</Option>
+              <Option value="candidateAZ">Candidate Name (A-Z)</Option>
+              <Option value="candidateZA">Candidate Name (Z-A)</Option>
+              <Option value="statusAZ">Status (A-Z)</Option>
+            </Select>
+          </div>
         }
       >
          <AnimatePresence>
           <Table
             columns={columns}
-            dataSource={upcomingInterviews}
+            dataSource={sortedInterviews}
             rowKey="id"
             pagination={false}
-            showHeader={true} /* Ensure header is shown */
+            showHeader={true}
+            locale={{ emptyText: <CustomEmpty /> }}
             components={{
               body: {
                 row: MotionTr,
@@ -686,84 +771,139 @@ const InterviewerDashboard = () => {
       </StyledCard>
 
       <Modal
-        title="Schedule New Interview"
+        title={<span style={{ color: '#fff' }}>Schedule New Interview</span>}
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
         className="schedule-modal"
-        centered /* Center the modal */
+        centered
+        styles={{ body: { background: 'linear-gradient(135deg, #181F2A 0%, #232B3E 100%)', borderRadius: 16 } }}
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleScheduleInterview}
-          onSubmit={(e) => e.preventDefault()} // Prevent default form submission on Enter key
+          style={{ color: '#fff' }}
         >
-          {/* Interviewer Email (Pre-filled) */}
           <Form.Item
-            label="Interviewer Email"
+            name="interviewerEmail"
+            label={<span style={{ color: '#b0b8c9' }}>Interviewer Email</span>}
+            rules={[{ required: true, message: 'Please enter the interviewer\'s email!' }, { type: 'email', message: 'Please enter a valid email!' }]}
+            initialValue={user?.email}
           >
-            <Input size="large" value={user?.email} />
+            <Input size="large" placeholder="Enter interviewer's email" />
           </Form.Item>
-
-          <Form.Item
-            name="candidateId"
-            label="Candidate"
-            rules={[{ required: true, message: 'Please select the candidate!' }]}
-          >
-            <Select showSearch placeholder="Select a candidate">
-              {candidates.map(candidate => (
-                <Option key={candidate._id} value={candidate._id}>
-                  {`${candidate.name} (${candidate.email})`}
-                </Option>
-              ))}
-            </Select>
+          <Form.Item name="candidateName" label={<span style={{ color: '#b0b8c9' }}>Candidate Name</span>} rules={[{ required: true, message: 'Please enter candidate\'s name' }]}>
+            <Input size="large" placeholder="Enter candidate's full name" />
           </Form.Item>
-
-          <Form.Item
-            name="position"
-            label="Position"
-            rules={[{ required: true, message: 'Please select position' }]}
-          >
-            <Select size="large" placeholder="Select position">
+          <Form.Item name="candidateEmail" label={<span style={{ color: '#b0b8c9' }}>Candidate Email</span>} rules={[{ required: true, message: 'Please enter candidate\'s email' }, { type: 'email' }]}>
+            <Input size="large" placeholder="Enter candidate's email" />
+          </Form.Item>
+          <Form.Item name="position" label={<span style={{ color: '#b0b8c9' }}>Position</span>} rules={[{ required: true, message: 'Please select a position' }]}>
+            <Select placeholder="Select a job role">
               <Option value="Frontend Developer">Frontend Developer</Option>
               <Option value="Backend Developer">Backend Developer</Option>
               <Option value="Full Stack Developer">Full Stack Developer</Option>
               <Option value="DevOps Engineer">DevOps Engineer</Option>
+              <Option value="Data Scientist">Data Scientist</Option>
+              <Option value="QA Engineer">QA Engineer</Option>
+              <Option value="UI/UX Designer">UI/UX Designer</Option>
+              <Option value="Mobile Developer">Mobile Developer</Option>
+              <Option value="Product Manager">Product Manager</Option>
             </Select>
           </Form.Item>
-
-          <Form.Item
-            name="date"
-            label="Date"
-            rules={[{ required: true, message: 'Please select date' }]}
-          >
-            <DatePicker style={{ width: '100%' }} size="large" />
+          <Form.Item name="date" label={<span style={{ color: '#b0b8c9' }}>Date</span>} rules={[{ required: true, message: 'Please select a date' }]}>
+            <DatePicker style={{ width: '100%' }} />
           </Form.Item>
-
-          <Form.Item
-            name="time"
-            label="Time"
-            rules={[{ required: true, message: 'Please select time' }]}
-          >
-            <TimePicker style={{ width: '100%' }} format="HH:mm" size="large" />
+          <Form.Item name="time" label={<span style={{ color: '#b0b8c9' }}>Time</span>} rules={[{ required: true, message: 'Please select a time' }]}>
+            <TimePicker style={{ width: '100%' }} format="HH:mm" />
           </Form.Item>
-
-          <Form.Item
-            name="candidateEmail"
-            label="Candidate Email"
-            rules={[
-              { required: true, message: 'Please enter the candidate\'s email!' },
-              { type: 'email', message: 'Please enter a valid email!' }
-            ]}
-          >
-            <Input size="large" placeholder="Candidate Email" />
-          </Form.Item>
-
           <Form.Item>
-            <StyledButton type="primary" htmlType="submit" block>
-              Schedule Interview
+            <StyledButton type="primary" htmlType="submit" block>Schedule Interview</StyledButton>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal  
+        title={<span style={{ color: '#fff' }}>Provide Feedback</span>}
+        open={feedbackModal.visible }
+        onCancel={closeFeedbackModal}
+        footer={null}
+        className="feedback-modal"
+        centered
+        styles={{ body: { background: '#181F2A', borderRadius: 16, color: '#fff' } }}
+        bodyStyle={{ background: '#181F2A', color: '#fff', borderRadius: 16 }}
+        titleStyle={{ color: '#fff' }}
+      >
+        <Form
+          layout="vertical"
+          onFinish={handleFeedbackSubmit}
+          initialValues={feedbackModal.feedback || {}}
+          key={feedbackModal.interview ? feedbackModal.interview.id : 'feedback-form'}
+        >
+          <Form.Item name="rating" label={<span style={{ color: '#fff' }}>Overall Rating</span>} rules={[{ required: true, message: "Please provide a rating" }]}> 
+            <Rate className="custom-rate" style={{ fontSize: '2.4rem', color: '#ffd700', filter: 'drop-shadow(0 0 2px #000a)' }} />
+          </Form.Item>
+          <Form.Item name="comment" label="Comments">
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item>
+            <StyledButton type="primary" htmlType="submit" loading={feedbackModal.loading} block>
+              Submit Feedback
             </StyledButton>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={<span style={{ color: '#fff' }}>Edit Interview</span>}
+        open={isEditModalVisible}
+        onCancel={() => { setIsEditModalVisible(false); setEditingInterview(null); }}
+        footer={null}
+        className="schedule-modal"
+        centered
+        styles={{ body: { background: 'linear-gradient(135deg, #181F2A 0%, #232B3E 100%)', borderRadius: 16 } }}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleUpdateInterview}
+          style={{ color: '#fff' }}
+        >
+          <Form.Item
+            name="interviewerEmail"
+            label={<span style={{ color: '#b0b8c9' }}>Interviewer Email</span>}
+            rules={[{ required: true, message: 'Please enter the interviewer\'s email!' }, { type: 'email', message: 'Please enter a valid email!' }]}
+          >
+            <Input size="large" placeholder="Enter interviewer's email" />
+          </Form.Item>
+          <Form.Item name="candidateName" label={<span style={{ color: '#b0b8c9' }}>Candidate Name</span>} rules={[{ required: true, message: 'Please enter candidate\'s name' }]}> 
+            <Input size="large" placeholder="Enter candidate's full name" />
+          </Form.Item>
+          <Form.Item name="candidateEmail" label={<span style={{ color: '#b0b8c9' }}>Candidate Email</span>} rules={[{ required: true, message: 'Please enter candidate\'s email' }, { type: 'email' }]}> 
+            <Input size="large" placeholder="Enter candidate's email" />
+          </Form.Item>
+          <Form.Item name="position" label={<span style={{ color: '#b0b8c9' }}>Position</span>} rules={[{ required: true, message: 'Please select a position' }]}> 
+            <Select placeholder="Select a job role">
+              <Option value="Frontend Developer">Frontend Developer</Option>
+              <Option value="Backend Developer">Backend Developer</Option>
+              <Option value="Full Stack Developer">Full Stack Developer</Option>
+              <Option value="DevOps Engineer">DevOps Engineer</Option>
+              <Option value="Data Scientist">Data Scientist</Option>
+              <Option value="QA Engineer">QA Engineer</Option>
+              <Option value="UI/UX Designer">UI/UX Designer</Option>
+              <Option value="Mobile Developer">Mobile Developer</Option>
+              <Option value="Product Manager">Product Manager</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item name="date" label={<span style={{ color: '#b0b8c9' }}>Date</span>} rules={[{ required: true, message: 'Please select a date' }]}> 
+            <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="time" label={<span style={{ color: '#b0b8c9' }}>Time</span>} rules={[{ required: true, message: 'Please select a time' }]}> 
+            <TimePicker style={{ width: '100%' }} format="HH:mm" />
+          </Form.Item>
+          <Form.Item>
+            <StyledButton type="primary" htmlType="submit" block>Update Interview</StyledButton>
           </Form.Item>
         </Form>
       </Modal>

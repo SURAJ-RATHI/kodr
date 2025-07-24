@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import MonacoEditor from '@monaco-editor/react';
 import KonvaWhiteboard from './KonvaWhiteboard';
 import { ClipLoader } from 'react-spinners';
 import styled from '@emotion/styled';
 import { FaCode, FaPencilAlt, FaHighlighter, FaEraser, FaMinus, FaArrowRight, FaUndo, FaRedo, FaTrash, FaPalette, FaExpand, FaCompress, FaSquare, FaCircle, FaTerminal } from 'react-icons/fa';
-import io from 'socket.io-client';
+import VideoChat from './VideoChat';
 
 const Container = styled.div`
   width: 100vw;
@@ -299,10 +300,12 @@ const sampleCode = {
 `,
 };
 
-export default function InterviewPanel() {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState(sampleCode['javascript']); // Initialize with sample code
-  const [output, setOutput] = useState('');
+export default function InterviewPanel({ socket, interviewId, interviewData, role: propRole }) {
+  const { userRole, selectedRole } = useAuth();
+  const role = selectedRole || propRole || userRole;
+  const [language, setLanguage] = useState(interviewData?.code?.language || 'javascript');
+  const [code, setCode] = useState(interviewData?.code?.content || '// Start coding here...');
+  const [output, setOutput] = useState('> Ready to code...\n');
   const [loading, setLoading] = useState(false);
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [whiteboardMax, setWhiteboardMax] = useState(false);
@@ -310,31 +313,54 @@ export default function InterviewPanel() {
   const [color, setColor] = useState('#007acc');
   const [shapeMsg, setShapeMsg] = useState('');
   const canvasRef = useRef();
-  const socket = useRef(null);
   const [isCodeEditorActive, setIsCodeEditorActive] = useState(false);
   const [isWhiteboardActive, setIsWhiteboardActive] = useState(false);
   const [isOutputActive, setIsOutputActive] = useState(false);
   const codeEditorPanelBodyRef = useRef(null);
   const whiteboardContainerRef = useRef(null);
   const outputBoxRef = useRef(null);
+  const [historyStep, setHistoryStep] = useState(0);
+  const [isWhiteboardMaximized, setIsWhiteboardMaximized] = useState(false);
 
   useEffect(() => {
-    // Connect to the WebSocket server
-    socket.current = io('http://localhost:3000'); // Adjust URL as needed
+    if (!socket) return;
 
-    // Listen for code execution output
-    socket.current.on('codeOutput', (data) => {
-      setOutput(data.output);
-      setLoading(false);
-    });
-
-    // Clean up socket connection on component unmount
-    return () => {
-      if (socket.current) {
-        socket.current.disconnect();
+    const handleCodeUpdate = (data) => {
+      if (data.interviewId === interviewId) {
+        setCode(data.code);
+        setLanguage(data.language);
       }
     };
-  }, []); // Empty dependency array ensures this runs only once on mount
+
+    const handleCodeOutput = (data) => {
+      console.log('Received codeOutput:', data);
+      setOutput(data.output);
+      setLoading(false);
+    };
+
+    const handleWhiteboardUpdate = (data) => {
+      if (data.interviewId === interviewId) {
+        setWhiteboardShapes(data.shapes);
+      }
+    };
+
+    const handleTimerUpdate = (data) => {
+      // Logic to handle timer updates from other clients if needed in the future
+      console.log('Timer update received in panel:', data);
+    };
+
+    socket.on('codeUpdate', handleCodeUpdate);
+    socket.on('codeOutput', handleCodeOutput);
+    socket.on('whiteboardUpdate', handleWhiteboardUpdate);
+    socket.on('timerUpdate', handleTimerUpdate);
+
+    return () => {
+      socket.off('codeUpdate', handleCodeUpdate);
+      socket.off('codeOutput', handleCodeOutput);
+      socket.off('whiteboardUpdate', handleWhiteboardUpdate);
+      socket.off('timerUpdate', handleTimerUpdate);
+    };
+  }, [socket, interviewId]);
 
   // Update sample code when language changes
   useEffect(() => {
@@ -366,8 +392,9 @@ export default function InterviewPanel() {
     setIsOutputActive(true); // Set output as active
     setIsCodeEditorActive(false); // Deactivate code editor
     setIsWhiteboardActive(false); // Deactivate whiteboard
-    if (socket.current) {
-      socket.current.emit('executeCode', { language, code });
+    console.log('Run Code clicked. Socket:', socket, 'interviewId:', interviewId, 'language:', language, 'code:', code);
+    if (socket) {
+      socket.emit('executeCode', { interviewId, language, code });
     }
   };
 
@@ -395,19 +422,54 @@ export default function InterviewPanel() {
 
   const activeTool = whiteboardTools.find(t => t.name === tool);
 
+  // Handle code changes and emit socket events
+  const handleCodeChange = (value) => {
+    setCode(value);
+    if (socket) {
+      socket.emit('codeUpdate', {
+        interviewId,
+        code: value,
+        language,
+      });
+    }
+  };
+
+  // Handle language changes and emit socket events
+  const handleLanguageChange = (newLanguage) => {
+    setLanguage(newLanguage);
+    if (socket) {
+      socket.emit('codeUpdate', {
+        interviewId,
+        code,
+        language: newLanguage,
+      });
+    }
+  };
+
+  const handleEditorDidMount = (editor, monaco) => {
+    // ... existing code ...
+  };
+
   return (
     <Container>
+      {/* Video Chat Overlay */}
+      <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 1000, background: 'rgba(34,40,49,0.95)', borderRadius: 12, boxShadow: '0 2px 16px rgba(0,0,0,0.4)', padding: 8 }}>
+        <VideoChat socket={socket} interviewId={interviewId} userId={role || 'user'} />
+      </div>
       <PanelGroup direction="horizontal" style={{ height: '100%' }}>
         {/* Code Editor Panel */}
         <Panel minSize={20} defaultSize={whiteboardMax ? 0 : 45} collapsible>
           <PanelHeader>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', fontSize: '1.4rem', color: '#61dafb' }}>
               <span style={{ fontSize: '1.5em', color: '#61dafb' }}>&lt;/&gt;</span> Koder
+              <span style={{ marginLeft: '1.5rem', fontSize: '1rem', color: '#a0a0a0', fontWeight: 500 }}>
+                Role: {role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
+              </span>
             </span>
             <div>
               <LanguageSelect
                 value={language}
-                onChange={e => setLanguage(e.target.value)}
+                onChange={e => handleLanguageChange(e.target.value)}
               >
                 {languages.map(lang => (
                   <option key={lang.value} value={lang.value}>{lang.label}</option>
@@ -416,6 +478,14 @@ export default function InterviewPanel() {
               <Button onClick={handleRunCode}>Run Code</Button>
             </div>
           </PanelHeader>
+          {/* Role-based feature toggling */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '0.5rem 2rem 0.5rem 0', gap: '1rem' }}>
+            {role === 'interviewer' && (
+              <Button style={{ background: 'linear-gradient(45deg, #00C853, #009688)' }} onClick={() => alert('Interview started!')}>
+                Start Interview
+              </Button>
+            )}
+          </div>
           <PanelBody
             isActive={isCodeEditorActive}
             onMouseEnter={() => setIsCodeEditorActive(true)}
@@ -427,7 +497,7 @@ export default function InterviewPanel() {
               language={language === 'cpp' ? 'cpp' : language}
               value={code}
               theme="vs-dark"
-              onChange={v => setCode(v || '')}
+              onChange={handleCodeChange}
               options={{ fontSize: 16, minimap: { enabled: false }, quickSuggestions: false, scrollbar: { vertical: 'hidden' } /* Added options */ }}
               onFocus={() => {
                 setIsCodeEditorActive(true);
