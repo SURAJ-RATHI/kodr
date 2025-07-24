@@ -34,17 +34,14 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Socket.IO setup
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: true, // Allow all origins
     methods: ['GET', 'POST'],
     credentials: true
   }
 });
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
+app.use(cors()); // Allow all origins for testing
 app.use(express.json());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'a_very_secret_key',
