@@ -381,7 +381,8 @@ const HomePage = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => {
-              window.location.href = '/compiler';
+              // Navigate to a compiler page or open compiler functionality
+              navigate('/compiler');
             }}
           >
             <span className="button-icon">⚡</span>
