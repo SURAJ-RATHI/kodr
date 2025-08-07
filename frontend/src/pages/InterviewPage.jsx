@@ -354,7 +354,8 @@ const InterviewPage = () => {
     }
 
     // Connect to socket ONLY after successful authentication
-    const s = io(import.meta.env.VITE_API_URL);
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const s = io(API_URL);
     setSocket(s);
     console.log('Socket created and set:', s);
 

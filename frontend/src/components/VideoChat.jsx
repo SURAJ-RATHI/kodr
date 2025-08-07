@@ -222,7 +222,8 @@ export default function VideoChat({ socket, interviewId, userId }) {
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
-    const res = await axios.post('/api/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const res = await axios.post(`${API_URL}/api/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
     const { url, originalName } = res.data;
     socket.emit('video-chat-message', { interviewId, userId, message: `[file]${originalName}::${url}` });
   };

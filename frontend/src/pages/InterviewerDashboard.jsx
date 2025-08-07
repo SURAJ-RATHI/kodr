@@ -45,7 +45,7 @@ const DashboardContainer = styled(motion.div)`
     left: 0;
     width: 100%;
     height: 100%;
-    background: url('/path/to/subtle-pattern.svg') repeat;
+    background: url('/subtle-pattern.svg') repeat;
     opacity: 0.05;
     z-index: 0;
     pointer-events: none;
@@ -213,6 +213,7 @@ const InterviewerDashboard = () => {
   const [feedbackModal, setFeedbackModal] = useState({ visible: false, interview: null, loading: false, feedback: null });
   const navigate = useNavigate();
   const [sortOption, setSortOption] = useState('closest');
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     // Verify user role on component mount
@@ -235,7 +236,7 @@ const InterviewerDashboard = () => {
         return;
       }
 
-      const response = await fetch('/api/interviewer/interviews', {
+      const response = await fetch(`${API_URL}/api/interviewer/interviews`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -247,15 +248,12 @@ const InterviewerDashboard = () => {
           logout();
           return;
         }
-        // Attempt to parse JSON, but fallback to text if it fails
+        let errorText = await response.text();
         let errorDetails = `Error ${response.status}: ${response.statusText}`;
         try {
-          const errorData = await response.json();
+          const errorData = JSON.parse(errorText);
           errorDetails = errorData.message || JSON.stringify(errorData);
-        } catch (jsonError) {
-          const textResponse = await response.text();
-          errorDetails = `Error ${response.status}: ${response.statusText}. Response was not valid JSON: ${textResponse.substring(0, 100)}...`;
-        }
+        } catch {}
         console.error('Failed to fetch interviews:', response.status, errorDetails);
         throw new Error(errorDetails);
       }
@@ -286,7 +284,7 @@ const InterviewerDashboard = () => {
         return;
       }
 
-      const response = await fetch('/api/interviewer/stats', {
+      const response = await fetch(`${API_URL}/api/interviewer/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -298,15 +296,12 @@ const InterviewerDashboard = () => {
           logout();
           return;
         }
-        // Attempt to parse JSON, but fallback to text if it fails
+        let errorText = await response.text();
         let errorDetails = `Error ${response.status}: ${response.statusText}`;
         try {
-          const errorData = await response.json();
+          const errorData = JSON.parse(errorText);
           errorDetails = errorData.message || JSON.stringify(errorData);
-        } catch (jsonError) {
-          const textResponse = await response.text();
-          errorDetails = `Error ${response.status}: ${response.statusText}. Response was not valid JSON: ${textResponse.substring(0, 100)}...`;
-        }
+        } catch {}
         console.error('Failed to fetch statistics:', response.status, errorDetails);
         throw new Error(errorDetails);
       }
@@ -344,7 +339,7 @@ const InterviewerDashboard = () => {
         status: 'scheduled'
       };
 
-      const response = await fetch('/api/interviews', {
+      const response = await fetch(`${API_URL}/api/interviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -352,14 +347,18 @@ const InterviewerDashboard = () => {
         },
         body: JSON.stringify(interviewData),
       });
-
-      const result = await response.json();
-
+      let errorText = await response.text();
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to schedule interview');
+        let errorDetails = `Error ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorDetails = errorData.message || JSON.stringify(errorData);
+        } catch {}
+        throw new Error(errorDetails);
       }
+      const data = JSON.parse(errorText);
 
-      message.success(result.message || 'Interview scheduled successfully');
+      message.success(data.message || 'Interview scheduled successfully');
       setIsModalVisible(false);
       form.resetFields();
       fetchInterviews();
@@ -373,7 +372,7 @@ const InterviewerDashboard = () => {
     setFeedbackModal({ visible: true, interview, loading: true, feedback: null });
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/interviews/${interview.id}/feedback`, {
+      const res = await fetch(`${API_URL}/api/interviews/${interview.id}/feedback`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -390,7 +389,7 @@ const InterviewerDashboard = () => {
     setFeedbackModal((prev) => ({ ...prev, loading: true }));
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/interviews/${feedbackModal.interview.id}/feedback`, {
+      const res = await fetch(`${API_URL}/api/interviews/${feedbackModal.interview.id}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(values),
@@ -440,7 +439,7 @@ const InterviewerDashboard = () => {
             message.error('User not authenticated.');
             return;
           }
-          const response = await fetch(`/api/interviews/${interview.id || interview._id}`, {
+          const response = await fetch(`${API_URL}/api/interviews/${interview.id || interview._id}`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -507,7 +506,7 @@ const InterviewerDashboard = () => {
         status: editingInterview.status,
         passcode: editingInterview.passcode
       };
-      const response = await fetch(`/api/interviews/${editingInterview.id || editingInterview._id}`, {
+      const response = await fetch(`${API_URL}/api/interviews/${editingInterview.id || editingInterview._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

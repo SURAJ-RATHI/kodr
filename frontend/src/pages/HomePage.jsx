@@ -6,6 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const Footer = styled.footer`
   width: 100%;
   padding: 1.5rem 0 1rem 0;
@@ -331,7 +333,7 @@ const HomePage = () => {
     }
     setPasscodeLoading(true);
     try {
-      const response = await fetch('/api/interviews/find-by-passcode', {
+      const response = await fetch(`${API_URL}/api/interviews/find-by-passcode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passcode }),

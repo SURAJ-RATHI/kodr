@@ -8,7 +8,8 @@ export default function InterviewPanelPage() {
   const { selectedRole } = useAuth();
 
   useEffect(() => {
-    const s = io(import.meta.env.VITE_API_URL);
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const s = io(API_URL);
     setSocket(s);
     return () => {
       s.disconnect();
