@@ -377,10 +377,12 @@ const InterviewerLogin = () => {
         const result = await login(email, password, 'interviewer');
         if (!result.success) {
           setError(result.error || 'Invalid email or password');
+          // Do not show popup, only inline error
         }
       } catch (err) {
         console.error('Login error:', err);
         setError('An unexpected error occurred. Please try again.');
+        // Do not show popup, only inline error
       } finally {
         setLoading(false);
       }

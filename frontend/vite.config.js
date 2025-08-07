@@ -21,7 +21,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://kodr-test.onrender.com:3000', // Your backend server address
+        target: 'http://localhost:3000', // Use localhost for local development
         changeOrigin: true,
       },
     }

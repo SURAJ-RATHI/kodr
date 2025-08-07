@@ -100,7 +100,8 @@ export const AuthProvider = ({ children }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+        // Do not show popup, just return error
+        return { success: false, error: errorData.message || 'Login failed' };
       }
 
       const { token, user: userData } = await response.json();
@@ -128,6 +129,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
+      // Do not show popup, just return error
       return { success: false, error: error.message };
     }
   };
