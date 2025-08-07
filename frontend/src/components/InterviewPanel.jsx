@@ -300,7 +300,7 @@ const sampleCode = {
 `,
 };
 
-export default function InterviewPanel({ socket, interviewId, interviewData, role: propRole }) {
+export default function InterviewPanel({ socket, interviewId, interviewData, role: propRole, showVideoChat = true }) {
   const { userRole, selectedRole } = useAuth();
   const role = selectedRole || propRole || userRole;
   const [language, setLanguage] = useState(interviewData?.code?.language || 'javascript');
@@ -453,9 +453,11 @@ export default function InterviewPanel({ socket, interviewId, interviewData, rol
   return (
     <Container>
       {/* Video Chat Overlay */}
-      <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 1000, background: 'rgba(34,40,49,0.95)', borderRadius: 12, boxShadow: '0 2px 16px rgba(0,0,0,0.4)', padding: 8 }}>
-        <VideoChat socket={socket} interviewId={interviewId} userId={role || 'user'} />
-      </div>
+      {showVideoChat && (
+        <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 1000, background: 'rgba(34,40,49,0.95)', borderRadius: 12, boxShadow: '0 2px 16px rgba(0,0,0,0.4)', padding: 8 }}>
+          <VideoChat socket={socket} interviewId={interviewId} userId={role || 'user'} />
+        </div>
+      )}
       <PanelGroup direction="horizontal" style={{ height: '100%' }}>
         {/* Code Editor Panel */}
         <Panel minSize={20} defaultSize={whiteboardMax ? 0 : 45} collapsible>

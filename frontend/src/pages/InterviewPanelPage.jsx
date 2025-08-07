@@ -8,7 +8,7 @@ export default function InterviewPanelPage() {
   const { selectedRole } = useAuth();
 
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const API_URL = import.meta.env.VITE_API_URL ;
     const s = io(API_URL);
     setSocket(s);
     return () => {
@@ -17,5 +17,5 @@ export default function InterviewPanelPage() {
   }, []);
 
   // You can pass dummy interviewId/interviewData or make them optional in InterviewPanel
-  return <InterviewPanel socket={socket} role={selectedRole} />;
+  return <InterviewPanel socket={socket} role={selectedRole} showVideoChat={selectedRole === 'interviewer'} />;
 } 
