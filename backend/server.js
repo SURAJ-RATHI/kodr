@@ -228,7 +228,7 @@ const sendInterviewScheduledEmail = async (interview) => {
     <p>Please use the following details to join the session:</p>
     <p><strong>Interview Link:</strong> <a href="${interviewUrl}">${interviewUrl}</a></p>
     <p><strong>Passcode:</strong> ${passcode}</p>
-    <br/><p>Thank you,</p><p>The Koder Team</p>
+    <br/><p>Thank you,</p><p>The kodr Team</p>
   `;
   const candidateMailOptions = {
     from: process.env.EMAIL_FROM,
@@ -1003,7 +1003,7 @@ app.get('/api/interviews/:interviewId/feedback', verifyToken, async (req, res) =
 
 // Default route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to Koder API!' });
+  res.json({ message: 'Welcome to kodr API!' });
 });
 
 // Start server

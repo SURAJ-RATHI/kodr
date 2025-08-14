@@ -360,7 +360,7 @@ const HomePage = () => {
     >
       <Title variants={itemVariants}>
         <span className="code-brackets">{'</>'}</span>
-        Koder
+        Kodr
       </Title>
       <Subtitle variants={itemVariants}>
         Elevate your technical interviews with real-time coding, collaboration, and smart timing
@@ -416,7 +416,7 @@ const HomePage = () => {
         </FeatureCard>
       </FeatureGrid>
       <Footer>
-        &copy; {new Date().getFullYear()} Koder &mdash; Modern Interview Platform
+        &copy; {new Date().getFullYear()} kodr &mdash; Modern Interview Platform
         <a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a>
       </Footer>
       {isAuthenticated && isPasscodeModalVisible && (

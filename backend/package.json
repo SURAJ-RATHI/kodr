@@ -1,7 +1,7 @@
 {
-  "name": "koder-backend",
+  "name": "kodr-backend",
   "version": "1.0.0",
-  "description": "Backend for Koder - Technical Interview Platform",
+  "description": "Backend for kodr - Technical Interview Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

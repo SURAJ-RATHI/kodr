@@ -58,7 +58,7 @@ const sendInterviewScheduledEmail = async (interview) => {
     <p><strong>Passcode:</strong> ${passcode}</p>
     <br/>
     <p>Thank you,</p>
-    <p>The Koder Team</p>
+    <p>The kodr Team</p>
   `;
 
   // Email to Candidate

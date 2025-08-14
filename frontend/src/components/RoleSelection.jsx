@@ -25,7 +25,7 @@ const RoleSelection = () => {
       background: '#f0f2f5'
     }}>
       <Card style={{ width: 600, textAlign: 'center', padding: '2rem' }}>
-        <Title level={2}>Welcome to Koder</Title>
+        <Title level={2}>Welcome to kodr</Title>
         <Title level={4} style={{ marginBottom: '2rem' }}>Please select your role</Title>
         
         <Space direction="vertical" size="large" style={{ width: '100%' }}>

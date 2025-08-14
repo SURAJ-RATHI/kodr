@@ -1,6 +1,6 @@
 # Interview URL Generation Guide
 
-This guide explains how the interview URL generation system works in the Koder application.
+This guide explains how the interview URL generation system works in the kodr application.
 
 ## Overview
 
@@ -10,7 +10,7 @@ The interview URL generation system allows interviewers to create shareable URLs
 
 ### 1. Dynamic Interview URLs
 - **Format**: `https://yourdomain.com/interview/{interviewId}`
-- **Example**: `https://koder.com/interview/64f8a1b2c3d4e5f6a7b8c9d0`
+- **Example**: `https://kodr.com/interview/64f8a1b2c3d4e5f6a7b8c9d0`
 
 ### 2. Real-time Collaboration
 - Live code editing synchronization
@@ -61,7 +61,7 @@ Authorization: Bearer <token>
 {
   "message": "Interview started successfully",
   "interview": { /* interview object */ },
-  "interviewUrl": "https://koder.com/interview/64f8a1b2c3d4e5f6a7b8c9d0",
+  "interviewUrl": "https://kodr.com/interview/64f8a1b2c3d4e5f6a7b8c9d0",
   "timer": {
     "startTime": "2024-01-15T10:00:00Z",
     "duration": 3600000,
@@ -80,7 +80,7 @@ Authorization: Bearer <token>
 **Response:**
 ```json
 {
-  "interviewUrl": "https://koder.com/interview/64f8a1b2c3d4e5f6a7b8c9d0",
+  "interviewUrl": "https://kodr.com/interview/64f8a1b2c3d4e5f6a7b8c9d0",
   "interview": { /* interview object */ },
   "canStart": true
 }
@@ -134,7 +134,7 @@ Checks if user can start the interview.
 
 ```env
 FRONTEND_URL=https://yourdomain.com
-MONGODB_URI=mongodb://localhost:27017/koder
+MONGODB_URI=mongodb://localhost:27017/kodr
 JWT_SECRET=your-secret-key
 ```
 
