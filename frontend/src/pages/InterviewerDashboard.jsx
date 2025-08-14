@@ -617,7 +617,7 @@ const InterviewerDashboard = () => {
             <StyledButton
               type="primary"
               size="small"
-              onClick={() => navigate(`/interview/${record.id || record._id}`)}
+              onClick={() => navigate(`/interview/${record.id || record._id}?fromDashboard=true`)}
             >
               {record.status === 'in-progress' ? 'Join Interview' : 'View Interview'}
             </StyledButton>

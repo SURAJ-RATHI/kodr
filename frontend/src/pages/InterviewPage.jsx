@@ -16,6 +16,8 @@ const Container = styled.div`
   background: linear-gradient(135deg, #232526 0%, #1a1a1a 100%);
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: hidden; /* Hide horizontal scrollbar */
 `;
 
 const Header = styled.div`
@@ -26,6 +28,7 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   backdrop-filter: blur(10px);
+  flex-shrink: 0; /* Prevent header from shrinking */
 `;
 
 const InterviewInfo = styled.div`
@@ -154,6 +157,12 @@ const LoadingContainer = styled.div`
   gap: 1rem;
 `;
 
+const LoadingActions = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+
 const ErrorContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -162,6 +171,14 @@ const ErrorContainer = styled.div`
   flex-direction: column;
   gap: 1rem;
   color: #ff4d4f;
+`;
+
+const ContentArea = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Let InterviewPanel handle its own scrolling */
+  position: relative;
 `;
 
 const Timer = ({ timerData }) => {
@@ -236,11 +253,10 @@ const StyledInput = styled(Input)`
   }
 `;
 
-const PasscodeModal = ({ interviewId, onSuccess }) => {
+const PasscodeModal = ({ interviewId, onSuccess, isInterviewer = false }) => {
   const [passcode, setPasscode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  // Remove authStep and Google login logic
 
   const handleJoin = async () => {
     if (!passcode) {
@@ -256,7 +272,10 @@ const PasscodeModal = ({ interviewId, onSuccess }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ passcode }),
+        body: JSON.stringify({ 
+          passcode,
+          interviewer: isInterviewer // Pass interviewer flag
+        }),
       });
 
       const data = await response.json();
@@ -265,7 +284,7 @@ const PasscodeModal = ({ interviewId, onSuccess }) => {
         throw new Error(data.message || 'Failed to verify passcode');
       }
       message.success('Access granted!');
-      onSuccess(data.interview);
+      onSuccess(data.interview, isInterviewer);
     } catch (err) {
       console.error('Error joining interview:', err);
       setError(err.message || 'An incorrect passcode or error occurred.');
@@ -278,9 +297,14 @@ const PasscodeModal = ({ interviewId, onSuccess }) => {
     <ModalContainer>
       <PasscodeCard>
         <Spin spinning={loading}>
-          <Title level={3} style={{ color: '#61dafb' }}>Enter Passcode</Title>
+          <Title level={3} style={{ color: '#61dafb' }}>
+            {isInterviewer ? 'Join as Interviewer' : 'Enter Passcode'}
+          </Title>
           <Text style={{ color: '#b0b8c9', display: 'block', marginBottom: '2rem' }}>
-            A passcode is required to join this interview session.
+            {isInterviewer 
+              ? 'Join this interview session as the interviewer.'
+              : 'A passcode is required to join this interview session.'
+            }
           </Text>
           <StyledInput
             prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.5)' }} />}
@@ -299,7 +323,7 @@ const PasscodeModal = ({ interviewId, onSuccess }) => {
             style={{ width: '100%', marginTop: '2rem' }}
             size="large"
           >
-            Join Interview
+            {isInterviewer ? 'Join as Interviewer' : 'Join Interview'}
           </Button>
         </Spin>
       </PasscodeCard>
@@ -329,7 +353,7 @@ const InterviewPage = () => {
   const location = useLocation();
   const { user, isAuthenticated, loading } = useAuth();
   const [interview, setInterview] = useState(null);
-  const [interviewLoading, setInterviewLoading] = useState(true);
+  const [interviewLoading, setInterviewLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [timerData, setTimerData] = useState({
@@ -339,13 +363,42 @@ const InterviewPage = () => {
   });
   const [socket, setSocket] = useState(null);
   const [autoPasscodeTried, setAutoPasscodeTried] = useState(false);
+  const [isInterviewer, setIsInterviewer] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(null);
 
-  const handlePasscodeSuccess = (data) => {
-    console.log('handlePasscodeSuccess called with:', data);
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    if (interviewLoading && !interview) {
+      const timeout = setTimeout(() => {
+        console.log('Loading timeout reached, showing passcode modal');
+        setInterviewLoading(false);
+      }, 10000); // 10 second timeout
+      
+      setLoadingTimeout(timeout);
+      
+      return () => {
+        if (timeout) clearTimeout(timeout);
+      };
+    }
+  }, [interviewLoading, interview]);
+
+  const handlePasscodeSuccess = (data, interviewerFlag = false) => {
+    console.log('handlePasscodeSuccess called with:', data, 'interviewer:', interviewerFlag);
+    console.log('Setting interview data and interviewer flag');
+    
+    // Clear any existing timeout
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+      setLoadingTimeout(null);
+    }
+    
     setInterview(data);
+    setIsInterviewer(interviewerFlag);
     setInterviewLoading(false);
+    console.log('Interview loading set to false, interview data set');
 
     if (data.timer) {
+      console.log('Setting timer data:', data.timer);
       setTimerData({
         startTime: data.timer.startTime || null,
         elapsedSeconds: data.timer.elapsedSeconds || 0,
@@ -354,6 +407,7 @@ const InterviewPage = () => {
     }
 
     // Connect to socket ONLY after successful authentication
+    console.log('Creating socket connection');
     const API_URL = import.meta.env.VITE_API_URL ;
     const s = io(API_URL);
     setSocket(s);
@@ -445,7 +499,12 @@ const InterviewPage = () => {
   };
 
   const handleBack = () => {
-    navigate('/interviewer-dashboard');
+    // Navigate back based on role
+    if (isInterviewer) {
+      navigate('/interviewer-dashboard');
+    } else {
+      navigate('/home');
+    }
   };
 
   const handleShare = () => {
@@ -456,26 +515,83 @@ const InterviewPage = () => {
     return generateInterviewUrl(interviewId);
   };
 
-  // Auto-submit passcode from query param if present
+  const showPasscodeModal = () => {
+    console.log('Manually showing passcode modal');
+    setInterviewLoading(false);
+    setAutoPasscodeTried(false);
+  };
+
+  // Check if user is coming from interviewer dashboard (no passcode needed)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const fromDashboard = params.get('fromDashboard');
+    
+    console.log('Dashboard useEffect - fromDashboard:', fromDashboard, 'isAuthenticated:', isAuthenticated);
+    
+    if (fromDashboard === 'true' && isAuthenticated) {
+      // User is coming from dashboard, join directly as interviewer
+      console.log('Joining as interviewer from dashboard');
+      setIsInterviewer(true);
+      setInterviewLoading(true);
+      
+      const fetchInterview = async () => {
+        try {
+          console.log('Fetching interview data for ID:', interviewId);
+          const API_URL = import.meta.env.VITE_API_URL;
+          console.log('Using API URL:', API_URL);
+          const response = await fetch(`${API_URL}/api/interviews/${interviewId}`);
+          console.log('API response status:', response.status);
+          if (!response.ok) {
+            throw new Error('Interview not found or server error');
+          }
+          const data = await response.json();
+          console.log('Interview data fetched successfully:', data);
+          handlePasscodeSuccess(data, true);
+        } catch (err) {
+          console.error('Error fetching interview:', err);
+          setError('Interview not found or server error');
+          setInterviewLoading(false);
+        }
+      };
+      
+      fetchInterview();
+    }
+  }, [location.search, interviewId, isAuthenticated]);
+
+  // Auto-submit passcode from query param if present (for candidates)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const passcode = params.get('passcode');
-    if (passcode && !isAuthenticated && !autoPasscodeTried) {
-      // Try to join interview with passcode
+    const fromDashboard = params.get('fromDashboard');
+    
+    console.log('Passcode useEffect - passcode:', passcode, 'fromDashboard:', fromDashboard, 'autoPasscodeTried:', autoPasscodeTried);
+    
+    if (passcode && !fromDashboard && !autoPasscodeTried) {
+      // Try to join interview with passcode as candidate
+      console.log('Auto-submitting passcode as candidate');
       const joinWithPasscode = async () => {
         setInterviewLoading(true);
         try {
-          const response = await fetch(`/api/interviews/${interviewId}/join`, {
+          console.log('Joining interview with passcode:', passcode);
+          const API_URL = import.meta.env.VITE_API_URL;
+          console.log('Using API URL for passcode:', API_URL);
+          const response = await fetch(`${API_URL}/api/interviews/${interviewId}/join`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ passcode }),
+            body: JSON.stringify({ 
+              passcode,
+              interviewer: false // Explicitly set as candidate
+            }),
           });
+          console.log('Passcode API response status:', response.status);
           const data = await response.json();
           if (!response.ok) {
             throw new Error(data.message || 'Failed to verify passcode');
           }
-          handlePasscodeSuccess(data.interview);
+          console.log('Passcode verification successful:', data);
+          handlePasscodeSuccess(data, false);
         } catch (err) {
+          console.error('Error joining interview with passcode:', err);
           setError(err.message || 'An incorrect passcode or error occurred.');
           setInterviewLoading(false);
         } finally {
@@ -484,63 +600,65 @@ const InterviewPage = () => {
       };
       joinWithPasscode();
     }
-  }, [location.search, interviewId, isAuthenticated, autoPasscodeTried]);
+  }, [location.search, interviewId, autoPasscodeTried]);
 
+  // Show passcode modal if no authentication method found
   useEffect(() => {
-    // Fetch interview details if authenticated and no interview loaded
-    if (!interview && isAuthenticated && !interviewLoading) {
-      setInterviewLoading(true);
-      const fetchInterview = async () => {
-        try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/interviews/${interviewId}`);
-          if (!response.ok) {
-            throw new Error('Interview not found or server error');
-          }
-          const data = await response.json();
-          setInterview(data);
-        } catch (err) {
-          setError('Interview not found or server error');
-        } finally {
-          setInterviewLoading(false);
-        }
-      };
-      fetchInterview();
+    const params = new URLSearchParams(location.search);
+    const passcode = params.get('passcode');
+    const fromDashboard = params.get('fromDashboard');
+    
+    console.log('InterviewPage useEffect - params:', { passcode, fromDashboard, interview, interviewLoading, autoPasscodeTried });
+    
+    if (!passcode && !fromDashboard && !interview && !interviewLoading && !autoPasscodeTried) {
+      // Show passcode modal for manual entry
+      console.log('Showing passcode modal - no auth method found');
+      // Don't set loading to true here, just show the modal directly
     }
-  }, [interviewId, isAuthenticated, interview, interviewLoading]);
+  }, [location.search, interviewId, interview, interviewLoading, autoPasscodeTried]);
 
-  // Require authentication before accessing the interview
-  if (interviewLoading) {
+  // Loading state - only show when actually fetching data
+  if (interviewLoading && !interview) {
     return (
       <LoadingContainer>
         <Spin size="large" />
         <Text style={{ color: '#61dafb' }}>Loading interview...</Text>
+        <LoadingActions>
+          <Button type="primary" onClick={() => setInterviewLoading(true)}>
+            Refresh
+          </Button>
+          <Button onClick={showPasscodeModal} icon={<LockOutlined />}>
+            Enter Passcode
+          </Button>
+          <Button onClick={handleBack} icon={<ArrowLeftOutlined />}>
+            Back to {isInterviewer ? 'Dashboard' : 'Home'}
+          </Button>
+        </LoadingActions>
       </LoadingContainer>
     );
   }
-  if (!isAuthenticated) {
-    // After login, redirect back to this interview page
-    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
-  }
 
+  // Error state
   if (error) {
     return (
       <ErrorContainer>
         <Title level={3} style={{ color: '#ff4d4f' }}>{error}</Title>
         <Button type="primary" onClick={handleBack} icon={<ArrowLeftOutlined />}>
-          Back to Dashboard
+          Back to {isInterviewer ? 'Dashboard' : 'Home'}
         </Button>
       </ErrorContainer>
     );
   }
 
-  if (!interview) {
+  // Show passcode modal if no interview loaded yet and no loading in progress
+  if (!interview && !interviewLoading) {
+    console.log('Rendering PasscodeModal - no interview loaded and not loading');
     return (
-      <ErrorContainer>
-        <Title level={3} style={{ color: '#ff4d4f' }}>Interview Not Found</Title>
-        <Button type="primary" onClick={handleBack} icon={<ArrowLeftOutlined />}>
-          Back to Dashboard
-        </Button>
-      </ErrorContainer>
+      <PasscodeModal 
+        interviewId={interviewId} 
+        onSuccess={handlePasscodeSuccess}
+        isInterviewer={false} // Default to candidate
+      />
     );
   }
 
@@ -574,7 +692,7 @@ const InterviewPage = () => {
             
             <Timer timerData={timerData} />
 
-            {user?._id === (interview.interviewer?._id || interview.interviewer) && (
+            {isInterviewer && (
               <TimerControls>
                 {!timerData.isRunning && (
                   <StartButton type="primary" onClick={handleStartTimer}>
@@ -612,19 +730,19 @@ const InterviewPage = () => {
         </HeaderActions>
       </Header>
       
-      <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <RoleBadge isInterviewer={user?._id === (interview.interviewer?._id || interview.interviewer)}>
-          {user?._id === (interview.interviewer?._id || interview.interviewer) ? 'Interviewer' : 'Candidate'}
+      <ContentArea>
+        <RoleBadge isInterviewer={isInterviewer}>
+          {isInterviewer ? 'Interviewer' : 'Candidate'}
         </RoleBadge>
         {socket && (
           <InterviewPanel 
             socket={socket} 
             interviewId={interviewId} 
             interviewData={interview} 
-            role={user?._id === (interview.interviewer?._id || interview.interviewer) ? 'interviewer' : 'candidate'}
+            role={isInterviewer ? 'interviewer' : 'candidate'}
           />
         )}
-      </div>
+      </ContentArea>
 
       <Modal
         open={showUrlModal}

@@ -19,7 +19,7 @@ const AppContainer = styled.div`
   height: 100vh;
   background: linear-gradient(to bottom, #1a1a1a, #2d2d2d);
   color: #ffffff;
-  overflow: hidden;
+  overflow: auto; /* Allow scrolling */
 `
 
 const CanvasContainer = styled.div`
