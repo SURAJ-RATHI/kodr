@@ -84,11 +84,7 @@ function App() {
               <Route path="/login" element={<InterviewerLogin />} />
               <Route 
                 path="/compiler" 
-                element={
-                  <ProtectedRoute>
-                    <InterviewPanelPage />
-                  </ProtectedRoute>
-                } 
+                element={<InterviewPanelPage />} 
               />
               <Route 
                 path="/interview/:interviewId" 

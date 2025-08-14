@@ -44,7 +44,7 @@ const sendInterviewScheduledEmail = async (interview) => {
     timeStyle: 'short',
   });
 
-  const interviewUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/interview/${interview._id}`;
+  const interviewUrl = `${process.env.FRONTEND_URL}/interview/${interview._id}`;
 
   const commonEmailBody = `
     <p>This is a confirmation that the following interview has been scheduled:</p>

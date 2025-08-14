@@ -213,7 +213,7 @@ const InterviewerDashboard = () => {
   const [feedbackModal, setFeedbackModal] = useState({ visible: false, interview: null, loading: false, feedback: null });
   const navigate = useNavigate();
   const [sortOption, setSortOption] = useState('closest');
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const API_URL = import.meta.env.VITE_API_URL ;
 
   useEffect(() => {
     // Verify user role on component mount

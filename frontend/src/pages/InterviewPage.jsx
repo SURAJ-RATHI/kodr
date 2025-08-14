@@ -354,7 +354,7 @@ const InterviewPage = () => {
     }
 
     // Connect to socket ONLY after successful authentication
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const API_URL = import.meta.env.VITE_API_URL ;
     const s = io(API_URL);
     setSocket(s);
     console.log('Socket created and set:', s);
@@ -487,8 +487,26 @@ const InterviewPage = () => {
   }, [location.search, interviewId, isAuthenticated, autoPasscodeTried]);
 
   useEffect(() => {
-    // We don't fetch details automatically anymore. Access is granted via passcode.
-  }, [interviewId]);
+    // Fetch interview details if authenticated and no interview loaded
+    if (!interview && isAuthenticated && !interviewLoading) {
+      setInterviewLoading(true);
+      const fetchInterview = async () => {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/interviews/${interviewId}`);
+          if (!response.ok) {
+            throw new Error('Interview not found or server error');
+          }
+          const data = await response.json();
+          setInterview(data);
+        } catch (err) {
+          setError('Interview not found or server error');
+        } finally {
+          setInterviewLoading(false);
+        }
+      };
+      fetchInterview();
+    }
+  }, [interviewId, isAuthenticated, interview, interviewLoading]);
 
   // Require authentication before accessing the interview
   if (interviewLoading) {
@@ -502,6 +520,17 @@ const InterviewPage = () => {
   if (!isAuthenticated) {
     // After login, redirect back to this interview page
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  }
+
+  if (error) {
+    return (
+      <ErrorContainer>
+        <Title level={3} style={{ color: '#ff4d4f' }}>{error}</Title>
+        <Button type="primary" onClick={handleBack} icon={<ArrowLeftOutlined />}>
+          Back to Dashboard
+        </Button>
+      </ErrorContainer>
+    );
   }
 
   if (!interview) {

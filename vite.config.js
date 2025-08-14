@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.BACKEND_URL || 'http://localhost:3000', // Your backend server address
+        target: process.env.BACKEND_URL , // Your backend server address
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api'), // Keep the /api prefix for the backend
       },

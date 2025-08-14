@@ -5,8 +5,9 @@ import MonacoEditor from '@monaco-editor/react';
 import KonvaWhiteboard from './KonvaWhiteboard';
 import { ClipLoader } from 'react-spinners';
 import styled from '@emotion/styled';
-import { FaCode, FaPencilAlt, FaHighlighter, FaEraser, FaMinus, FaArrowRight, FaUndo, FaRedo, FaTrash, FaPalette, FaExpand, FaCompress, FaSquare, FaCircle, FaTerminal } from 'react-icons/fa';
+import { FaCode, FaPencilAlt, FaHighlighter, FaEraser, FaMinus, FaArrowRight, FaUndo, FaRedo, FaTrash, FaPalette, FaExpand, FaCompress, FaSquare, FaCircle, FaTerminal, FaUserTie, FaLaptopCode } from 'react-icons/fa';
 import VideoChat from './VideoChat';
+import { useNavigate } from 'react-router-dom';
 
 const Container = styled.div`
   width: 100vw;
@@ -300,9 +301,52 @@ const sampleCode = {
 `,
 };
 
+const RolePrompt = styled.div`
+  background: linear-gradient(135deg, rgba(0, 150, 255, 0.1), rgba(0, 255, 213, 0.1));
+  border: 1px solid rgba(0, 150, 255, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
+`;
+
+const RolePromptText = styled.span`
+  color: #61dafb;
+  font-weight: 600;
+  font-size: 1rem;
+`;
+
+const RoleButtons = styled.div`
+  display: flex;
+  gap: 1rem;
+`;
+
+const RoleButton = styled.button`
+  background: linear-gradient(45deg, #0096ff, #00ffd5);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 150, 255, 0.3);
+  }
+`;
+
 export default function InterviewPanel({ socket, interviewId, interviewData, role: propRole, showVideoChat = true }) {
-  const { userRole, selectedRole } = useAuth();
+  const { userRole, selectedRole, setSelectedRole } = useAuth();
   const role = selectedRole || propRole || userRole;
+  const navigate = useNavigate();
   const [language, setLanguage] = useState(interviewData?.code?.language || 'javascript');
   const [code, setCode] = useState(interviewData?.code?.content || '// Start coding here...');
   const [output, setOutput] = useState('> Ready to code...\n');
@@ -452,6 +496,25 @@ export default function InterviewPanel({ socket, interviewId, interviewData, rol
 
   return (
     <Container>
+      {/* Role Selection Prompt */}
+      {!role && (
+        <RolePrompt>
+          <RolePromptText>
+            Welcome to Koder! Please select your role to get started.
+          </RolePromptText>
+          <RoleButtons>
+            <RoleButton onClick={() => setSelectedRole('candidate')}>
+              <FaLaptopCode />
+              Candidate
+            </RoleButton>
+            <RoleButton onClick={() => setSelectedRole('interviewer')}>
+              <FaUserTie />
+              Interviewer
+            </RoleButton>
+          </RoleButtons>
+        </RolePrompt>
+      )}
+      
       {/* Video Chat Overlay */}
       {showVideoChat && (
         <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 1000, background: 'rgba(34,40,49,0.95)', borderRadius: 12, boxShadow: '0 2px 16px rgba(0,0,0,0.4)', padding: 8 }}>
@@ -466,6 +529,20 @@ export default function InterviewPanel({ socket, interviewId, interviewData, rol
               <span style={{ fontSize: '1.5em', color: '#61dafb' }}>&lt;/&gt;</span> Koder
               <span style={{ marginLeft: '1.5rem', fontSize: '1rem', color: '#a0a0a0', fontWeight: 500 }}>
                 Role: {role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
+                {role && (
+                  <Button 
+                    style={{ 
+                      marginLeft: '1rem', 
+                      padding: '0.3rem 0.8rem', 
+                      fontSize: '0.8rem',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }}
+                    onClick={() => setSelectedRole(null)}
+                  >
+                    Change Role
+                  </Button>
+                )}
               </span>
             </span>
             <div>

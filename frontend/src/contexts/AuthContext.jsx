@@ -1,8 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+const API_URL = import.meta.env.VITE_API_URL ;
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL ;
 
 const AuthContext = createContext(null);
 

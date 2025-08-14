@@ -217,7 +217,7 @@ const transporter = nodemailer.createTransport({
 const sendInterviewScheduledEmail = async (interview) => {
   const { candidateEmail, candidateName, interviewerEmail, title, position, scheduledTime, passcode } = interview;
   const formattedDate = new Date(scheduledTime).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' });
-  const interviewUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/interview/${interview._id}`;
+  const interviewUrl = `${process.env.FRONTEND_URL }/interview/${interview._id}`;
   const commonEmailBody = `
     <p>This is a confirmation that the following interview has been scheduled:</p>
     <ul>
@@ -513,7 +513,7 @@ app.post('/api/interviews/:interviewId/start', verifyToken, async (req, res) => 
     await interview.save();
 
     // Generate interview URL
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const baseUrl = process.env.FRONTEND_URL;
     const interviewUrl = `${baseUrl}/interview/${interview._id}`;
 
     res.json({ 
@@ -546,7 +546,7 @@ app.get('/api/interviews/:interviewId/url', verifyToken, async (req, res) => {
     }
 
     // Generate interview URL
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const baseUrl = process.env.FRONTEND_URL;
     const interviewUrl = `${baseUrl}/interview/${interview._id}`;
 
     res.json({ 
@@ -680,7 +680,7 @@ app.post('/api/interviews/find-by-passcode', async (req, res) => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/koder')
+mongoose.connect(process.env.MONGODB_URI )
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
