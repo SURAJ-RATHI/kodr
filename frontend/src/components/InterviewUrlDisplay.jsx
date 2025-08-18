@@ -6,7 +6,7 @@ import styled from '@emotion/styled';
 const { Text, Title } = Typography;
 
 const Container = styled.div`
-  background: linear-gradient(135deg, #232b3e 0%, #181f2a 100%);
+  background: #1a1a1a;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 16px;
   padding: 2rem;
@@ -26,7 +26,7 @@ const CloseButton = styled.button`
   transition: all 0.2s ease-in-out;
   
   &:hover {
-    color: #61dafb;
+    color: #ffffff;
     transform: rotate(90deg);
   }
 `;
@@ -39,8 +39,8 @@ const UrlInput = styled(Input)`
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   
   &:focus {
-    border-color: #61dafb;
-    box-shadow: 0 0 0 2px rgba(97, 218, 251, 0.2);
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
   }
   
   &::placeholder {
@@ -49,7 +49,7 @@ const UrlInput = styled(Input)`
 `;
 
 const ActionButton = styled(Button)`
-  background: linear-gradient(45deg, #61dafb, #007acc);
+  background: #2c3e50;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -57,8 +57,8 @@ const ActionButton = styled(Button)`
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(97, 218, 251, 0.3);
-    background: linear-gradient(45deg, #61dafb, #007acc);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    background: #34495e;
   }
 `;
 
@@ -70,8 +70,8 @@ const ShareButton = styled(Button)`
   
   &:hover {
     background: rgba(255, 255, 255, 0.2);
-    border-color: #61dafb;
-    color: #61dafb;
+    border-color: #ffffff;
+    color: #ffffff;
     transform: translateY(-2px);
   }
 `;
@@ -87,7 +87,6 @@ const InterviewUrlDisplay = ({ interviewUrl, interviewTitle = 'Interview', onCop
       if (onCopy) onCopy(interviewUrl);
       setTimeout(() => setCopied(false), 3000);
     } catch (error) {
-      console.error('Error copying URL:', error);
       message.error('Failed to copy URL. Please copy it manually.');
     }
   };
@@ -105,7 +104,6 @@ const InterviewUrlDisplay = ({ interviewUrl, interviewTitle = 'Interview', onCop
       } catch (error) {
         // Don't show an error if the user cancels the share dialog
         if (error.name !== 'AbortError') {
-          console.error('Error sharing URL:', error);
           message.error('Could not share the URL.');
         }
       }

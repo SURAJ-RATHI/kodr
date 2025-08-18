@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { message, Spin, Card, Button, Space, Typography, Tag, Modal, Input } from 'antd';
-import { ArrowLeftOutlined, UserOutlined, CalendarOutlined, ClockCircleOutlined, ShareAltOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
+import { message, Spin, Card, Button, Space, Typography, Modal, Input } from 'antd';
+import { ArrowLeftOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
 import styled from '@emotion/styled';
 import InterviewPanel from '../components/InterviewPanel';
 import InterviewUrlDisplay from '../components/InterviewUrlDisplay';
@@ -9,7 +9,28 @@ import { useAuth } from '../contexts/AuthContext';
 import { generateInterviewUrl } from '../utils/interviewUtils';
 import io from 'socket.io-client';
 
-const { Title, Text } = Typography;
+/**
+ * ROLE DETERMINATION LOGIC:
+ * 
+ * 1. INTERVIEWER Role:
+ *    - URL contains: ?fromDashboard=true
+ *    - User must be authenticated (isAuthenticated: true)
+ *    - Automatically fetches interview data with auth token
+ *    - No passcode required
+ * 
+ * 2. CANDIDATE Role:
+ *    - URL contains: ?passcode=XXXXX (from email link)
+ *    - OR: User clicks "Start Interview" from homepage
+ *    - OR: User manually enters passcode in modal
+ *    - Always requires passcode verification
+ *    - Never requires authentication
+ * 
+ * 3. Default Behavior:
+ *    - If no role indicators found → Default to CANDIDATE
+ *    - Shows passcode modal for manual entry
+ */
+
+const { Text, Title } = Typography;
 
 const Container = styled.div`
   min-height: 100vh;
@@ -20,132 +41,12 @@ const Container = styled.div`
   overflow-x: hidden; /* Hide horizontal scrollbar */
 `;
 
-const Header = styled.div`
-  background: rgba(34, 40, 49, 0.9);
-  padding: 1rem 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  backdrop-filter: blur(10px);
-  flex-shrink: 0; /* Prevent header from shrinking */
-`;
-
-const InterviewInfo = styled.div`
+const ContentArea = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-`;
-
-const InterviewTitle = styled(Title)`
-  color: #61dafb !important;
-  margin: 0 !important;
-  font-size: 1.5rem !important;
-`;
-
-const InterviewDetails = styled.div`
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  flex-wrap: wrap;
-`;
-
-const DetailItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  color: #b0b8c9;
-  font-size: 1rem;
-
-  & .ant-typography {
-    color: #e0e0e0;
-    font-weight: 500;
-  }
-`;
-
-const StatusTag = styled(Tag)`
-  border-radius: 12px;
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-`;
-
-const HeaderActions = styled.div`
-  display: flex;
-  gap: 1rem;
-`;
-
-const HeaderButton = styled(Button)`
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  font-weight: 500;
-  
-  &:hover, &:focus {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: #61dafb;
-    color: #61dafb;
-  }
-`;
-
-const ExitButton = styled(Button)`
-  background: transparent;
-  border: 1px solid #E53E3E;
-  color: #E53E3E;
-  font-weight: 600;
-
-  &:hover, &:focus {
-    background: #E53E3E;
-    color: #fff;
-  }
-`;
-
-const StartButton = styled(Button)`
-  background: linear-gradient(90deg, #38ef7d, #11998e);
-  border: none;
-  color: #fff;
-  font-weight: 600;
-  
-  &:hover, &:focus {
-    background: linear-gradient(90deg, #44f189, #13a89a);
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(56, 239, 125, 0.3);
-  }
-
-  &:disabled {
-    background: #555 !important;
-    color: #999 !important;
-    cursor: not-allowed !important;
-    transform: none !important;
-    box-shadow: none !important;
-  }
-`;
-
-const TimerControls = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-`;
-
-const TimerDisplay = styled.div`
-  color: #FFD700;
-  font-weight: 700;
-  font-size: 1.2rem;
-  background: #232B3E;
-  border-radius: 8px;
-  padding: 0.4rem 1rem;
-  margin-left: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const StopButton = styled(StartButton)`
-  background: linear-gradient(90deg, #e53e3e, #c53030);
-  
-  &:hover, &:focus {
-    background: linear-gradient(90deg, #fc8181, #e53e3e);
-  }
+  overflow: hidden; /* Let InterviewPanel handle its own scrolling */
+  position: relative;
 `;
 
 const LoadingContainer = styled.div`
@@ -173,12 +74,17 @@ const ErrorContainer = styled.div`
   color: #ff4d4f;
 `;
 
-const ContentArea = styled.div`
-  flex: 1;
+const TimerDisplay = styled.div`
+  color: #FFD700;
+  font-weight: 700;
+  font-size: 1.2rem;
+  background: #232B3E;
+  border-radius: 8px;
+  padding: 0.4rem 1rem;
+  margin-left: 1.5rem;
   display: flex;
-  flex-direction: column;
-  overflow: hidden; /* Let InterviewPanel handle its own scrolling */
-  position: relative;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 const Timer = ({ timerData }) => {
@@ -234,12 +140,12 @@ const ModalContainer = styled.div`
 `;
 
 const PasscodeCard = styled.div`
-  background: rgba(34, 40, 49, 0.85);
+  background: linear-gradient(135deg, #232526 0%, #1a1a1a 100%);
   padding: 3rem;
   border-radius: 16px;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   width: 100%;
   max-width: 400px;
   text-align: center;
@@ -250,10 +156,25 @@ const StyledInput = styled(Input)`
     text-align: center;
     font-size: 1.5rem;
     letter-spacing: 0.5rem;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    border-radius: 12px !important;
+    height: 48px;
+  }
+  
+  .ant-input::placeholder {
+    color: #fff !important;
+  }
+  
+  .ant-input:focus,
+  .ant-input:hover {
+    border-color: #61dafb !important;
+    box-shadow: 0 0 0 2px rgba(97, 218, 251, 0.2) !important;
   }
 `;
 
-const PasscodeModal = ({ interviewId, onSuccess, isInterviewer = false }) => {
+const PasscodeModal = ({ interviewId, onSuccess, isInterviewer = false, onModeChange }) => {
   const [passcode, setPasscode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -267,10 +188,25 @@ const PasscodeModal = ({ interviewId, onSuccess, isInterviewer = false }) => {
     setError('');
 
     try {
-      const response = await fetch(`/api/interviews/${interviewId}/join`, {
+      const API_URL = import.meta.env.VITE_API_URL;
+      console.log('PasscodeModal - Environment variables:', {
+        VITE_API_URL: import.meta.env.VITE_API_URL,
+        NODE_ENV: import.meta.env.NODE_ENV,
+        MODE: import.meta.env.MODE
+      });
+      
+      if (!API_URL) {
+        throw new Error('VITE_API_URL environment variable is not set. Please check your .env file.');
+      }
+      
+      console.log('PasscodeModal - Using API URL:', API_URL);
+      console.log('PasscodeModal - Request body:', { passcode, interviewer: isInterviewer });
+      
+      const response = await fetch(`${API_URL}/api/interviews/${interviewId}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({ 
           passcode,
@@ -278,13 +214,35 @@ const PasscodeModal = ({ interviewId, onSuccess, isInterviewer = false }) => {
         }),
       });
 
-      const data = await response.json();
+      console.log('PasscodeModal - Response status:', response.status);
+      
+      // Check if response has content
+      const responseText = await response.text();
+      console.log('PasscodeModal - Response text:', responseText);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to verify passcode');
+        throw new Error(`HTTP ${response.status}: ${responseText || 'No response body'}`);
       }
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', parseError);
+        console.error('Response text was:', responseText);
+        throw new Error(`Invalid response from server: ${responseText || 'Empty response'}`);
+      }
+
       message.success('Access granted!');
-      onSuccess(data.interview, isInterviewer);
+      
+      // For candidates, ensure we have the full interview data
+      if (!isInterviewer && data.interview) {
+        // Use the interview data from the join API response
+        onSuccess(data.interview, isInterviewer);
+      } else {
+        // Fallback for other cases
+        onSuccess(data.interview || data, isInterviewer);
+      }
     } catch (err) {
       console.error('Error joining interview:', err);
       setError(err.message || 'An incorrect passcode or error occurred.');
@@ -320,11 +278,78 @@ const PasscodeModal = ({ interviewId, onSuccess, isInterviewer = false }) => {
             icon={<LoginOutlined />}
             onClick={handleJoin}
             loading={loading}
-            style={{ width: '100%', marginTop: '2rem' }}
+            style={{ 
+              width: '100%', 
+              marginTop: '2rem',
+              background: 'linear-gradient(45deg, #61DAFB, #007ACC)',
+              border: 'none',
+              height: '48px',
+              borderRadius: '12px',
+              fontWeight: '600',
+              fontSize: '1rem'
+            }}
             size="large"
           >
             {isInterviewer ? 'Join as Interviewer' : 'Join Interview'}
           </Button>
+          
+          {/* Interviewer sign-in option */}
+          {!isInterviewer && (
+            <div style={{ 
+              marginTop: '1.5rem', 
+              textAlign: 'center', 
+              padding: '1rem', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              borderRadius: '12px', 
+              border: '1px solid rgba(255, 255, 255, 0.1)' 
+            }}>
+              <Text style={{ color: '#b0b8c9', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'block' }}>
+                Are you an interviewer?
+              </Text>
+              <Button 
+                type="link" 
+                style={{ 
+                  padding: 0, 
+                  height: 'auto', 
+                  color: '#61dafb',
+                  fontSize: '1rem',
+                  fontWeight: '600'
+                }}
+                onClick={() => onModeChange(true)}
+              >
+                Sign in as Interviewer
+              </Button>
+            </div>
+          )}
+          
+          {/* Back to candidate mode option */}
+          {isInterviewer && (
+            <div style={{ 
+              marginTop: '1.5rem', 
+              textAlign: 'center', 
+              padding: '1rem', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              borderRadius: '12px', 
+              border: '1px solid rgba(255, 255, 255, 0.1)' 
+            }}>
+              <Text style={{ color: '#b0b8c9', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'block' }}>
+                Joining as candidate?
+              </Text>
+              <Button 
+                type="link" 
+                style={{ 
+                  padding: 0, 
+                  height: 'auto', 
+                  color: '#61dafb',
+                  fontSize: '1rem',
+                  fontWeight: '600'
+                }}
+                onClick={() => onModeChange(false)}
+              >
+                Enter Passcode
+              </Button>
+            </div>
+          )}
         </Spin>
       </PasscodeCard>
     </ModalContainer>
@@ -332,20 +357,7 @@ const PasscodeModal = ({ interviewId, onSuccess, isInterviewer = false }) => {
 };
 // =================================================================================================
 
-const RoleBadge = styled.div`
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: ${(props) => (props.isInterviewer ? 'linear-gradient(45deg, #61dafb, #007acc)' : 'linear-gradient(45deg, #f09819, #ff5858)')};
-  color: #fff;
-  padding: 0.3rem 0.8rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-`;
+
 
 const InterviewPage = () => {
   const { interviewId } = useParams();
@@ -420,7 +432,6 @@ const InterviewPage = () => {
     
     s.on('timerStarted', (data) => {
       if (data.interviewId === interviewId) {
-        message.success('Timer has started!');
         setTimerData({
           startTime: data.startTime,
           elapsedSeconds: data.elapsedSeconds,
@@ -431,7 +442,6 @@ const InterviewPage = () => {
 
     s.on('timerStopped', (data) => {
       if (data.interviewId === interviewId) {
-        message.info('Timer has been paused.');
         setTimerData({
           startTime: null,
           elapsedSeconds: data.elapsedSeconds,
@@ -440,9 +450,9 @@ const InterviewPage = () => {
       }
     });
 
-    s.on('timerError', (data) => {
-      message.error(data.message || 'A problem occurred when starting the timer.');
-    });
+      s.on('timerError', (data) => {
+        console.error('Timer error:', data.message || 'A problem occurred when starting the timer.');
+      });
 
     s.on('disconnect', () => {
       console.log('Socket disconnected');
@@ -469,35 +479,6 @@ const InterviewPage = () => {
     }
   };
 
-  const handleRestartTimer = () => {
-    if (socket && interviewId) {
-      socket.emit('restartTimer', { interviewId });
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'scheduled':
-        return 'blue';
-      case 'in-progress':
-        return 'orange';
-      case 'completed':
-        return 'green';
-      case 'cancelled':
-        return 'red';
-      default:
-        return 'default';
-    }
-  };
-
-  const formatDateTime = (dateString) => {
-    const date = new Date(dateString);
-    return {
-      date: date.toLocaleDateString(),
-      time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-  };
-
   const handleBack = () => {
     // Navigate back based on role
     if (isInterviewer) {
@@ -505,10 +486,6 @@ const InterviewPage = () => {
     } else {
       navigate('/home');
     }
-  };
-
-  const handleShare = () => {
-    setShowUrlModal(true);
   };
 
   const getInterviewUrl = () => {
@@ -521,16 +498,18 @@ const InterviewPage = () => {
     setAutoPasscodeTried(false);
   };
 
-  // Check if user is coming from interviewer dashboard (no passcode needed)
+  // Determine user role and handle interview access
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const fromDashboard = params.get('fromDashboard');
+    const passcode = params.get('passcode');
     
-    console.log('Dashboard useEffect - fromDashboard:', fromDashboard, 'isAuthenticated:', isAuthenticated);
+    console.log('Role determination useEffect - fromDashboard:', fromDashboard, 'passcode:', passcode, 'isAuthenticated:', isAuthenticated);
     
+    // Clear role determination logic
     if (fromDashboard === 'true' && isAuthenticated) {
-      // User is coming from dashboard, join directly as interviewer
-      console.log('Joining as interviewer from dashboard');
+      // User is coming from dashboard → INTERVIEWER
+      console.log('User identified as INTERVIEWER (from dashboard)');
       setIsInterviewer(true);
       setInterviewLoading(true);
       
@@ -539,7 +518,19 @@ const InterviewPage = () => {
           console.log('Fetching interview data for ID:', interviewId);
           const API_URL = import.meta.env.VITE_API_URL;
           console.log('Using API URL:', API_URL);
-          const response = await fetch(`${API_URL}/api/interviews/${interviewId}`);
+          
+          // Get authentication token
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('No authentication token found');
+          }
+          
+          const response = await fetch(`${API_URL}/api/interviews/${interviewId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
           console.log('API response status:', response.status);
           if (!response.ok) {
             throw new Error('Interview not found or server error');
@@ -555,10 +546,19 @@ const InterviewPage = () => {
       };
       
       fetchInterview();
+    } else if (passcode) {
+      // User has passcode in URL → CANDIDATE
+      console.log('User identified as CANDIDATE (passcode in URL)');
+      setIsInterviewer(false);
+      // This will be handled by the passcode useEffect below
+    } else {
+      // No specific role indicator → Default to CANDIDATE (will show passcode modal)
+      console.log('User identified as CANDIDATE (default role)');
+      setIsInterviewer(false);
     }
   }, [location.search, interviewId, isAuthenticated]);
 
-  // Auto-submit passcode from query param if present (for candidates)
+  // Auto-submit passcode if provided in URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const passcode = params.get('passcode');
@@ -567,29 +567,62 @@ const InterviewPage = () => {
     console.log('Passcode useEffect - passcode:', passcode, 'fromDashboard:', fromDashboard, 'autoPasscodeTried:', autoPasscodeTried);
     
     if (passcode && !fromDashboard && !autoPasscodeTried) {
-      // Try to join interview with passcode as candidate
-      console.log('Auto-submitting passcode as candidate');
+      // User has passcode → Always CANDIDATE role
+      console.log('Auto-submitting passcode as CANDIDATE');
+      setIsInterviewer(false); // Ensure role is set correctly
+      
       const joinWithPasscode = async () => {
         setInterviewLoading(true);
         try {
           console.log('Joining interview with passcode:', passcode);
+          
+          // Extract interview data from URL parameters (sent from HomePage)
+          const params = new URLSearchParams(location.search);
+          const candidateName = params.get('candidateName');
+          const candidateEmail = params.get('candidateEmail');
+          const interviewerName = params.get('interviewerName');
+          const interviewerEmail = params.get('interviewerEmail');
+          const position = params.get('position');
+          const scheduledTime = params.get('scheduledTime');
+          const title = params.get('title');
+          
+          // Create mock interview object from URL parameters
+          const mockInterviewData = {
+            _id: interviewId,
+            candidateName: decodeURIComponent(candidateName || ''),
+            candidateEmail: decodeURIComponent(candidateEmail || ''),
+            interviewerName: decodeURIComponent(interviewerName || ''),
+            interviewerEmail: decodeURIComponent(interviewerEmail || ''),
+            position: decodeURIComponent(position || ''),
+            scheduledTime: decodeURIComponent(scheduledTime || ''),
+            title: decodeURIComponent(title || ''),
+            passcode: passcode
+          };
+          
+          console.log('Created mock interview data from URL params:', mockInterviewData);
+          
+          // Call the join API to validate passcode
           const API_URL = import.meta.env.VITE_API_URL;
-          console.log('Using API URL for passcode:', API_URL);
           const response = await fetch(`${API_URL}/api/interviews/${interviewId}/join`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
             body: JSON.stringify({ 
               passcode,
-              interviewer: false // Explicitly set as candidate
+              interviewer: false
             }),
           });
-          console.log('Passcode API response status:', response.status);
-          const data = await response.json();
+          
           if (!response.ok) {
-            throw new Error(data.message || 'Failed to verify passcode');
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText || 'Passcode validation failed'}`);
           }
-          console.log('Passcode verification successful:', data);
-          handlePasscodeSuccess(data, false);
+          
+          console.log('Passcode validation successful for CANDIDATE');
+          // Use the mock data instead of API response for display
+          handlePasscodeSuccess(mockInterviewData, false);
         } catch (err) {
           console.error('Error joining interview with passcode:', err);
           setError(err.message || 'An incorrect passcode or error occurred.');
@@ -657,83 +690,19 @@ const InterviewPage = () => {
       <PasscodeModal 
         interviewId={interviewId} 
         onSuccess={handlePasscodeSuccess}
-        isInterviewer={false} // Default to candidate
+        isInterviewer={isInterviewer} // Use current interviewer state
+        onModeChange={setIsInterviewer} // Allow switching between modes
       />
     );
   }
 
-  const { date, time } = formatDateTime(interview.scheduledTime);
-
   return (
     <Container>
-      <Header>
-        <InterviewInfo>
-          <InterviewTitle level={2}>
-            {interview.title}
-          </InterviewTitle>
-          <InterviewDetails>
-            <DetailItem>
-              <UserOutlined />
-              <Text>
-                {interview.candidate?.name || interview.candidateName || 'N/A'}
-              </Text>
-            </DetailItem>
-            <DetailItem>
-              <CalendarOutlined />
-              <Text>{date}</Text>
-            </DetailItem>
-            <DetailItem>
-              <ClockCircleOutlined />
-              <Text>{time}</Text>
-            </DetailItem>
-            <StatusTag color={getStatusColor(interview.status)}>
-              {interview.status.toUpperCase()}
-            </StatusTag>
-            
-            <Timer timerData={timerData} />
-
-            {isInterviewer && (
-              <TimerControls>
-                {!timerData.isRunning && (
-                  <StartButton type="primary" onClick={handleStartTimer}>
-                    {timerData.elapsedSeconds > 0 ? 'Resume' : 'Start'}
-                  </StartButton>
-                )}
-                {timerData.isRunning && (
-                  <StopButton danger type="primary" onClick={handleStopTimer}>
-                    Pause
-                  </StopButton>
-                )}
-                {(timerData.isRunning || timerData.elapsedSeconds > 0) && (
-                  <HeaderButton onClick={handleRestartTimer}>
-                    Restart
-                  </HeaderButton>
-                )}
-              </TimerControls>
-            )}
-          </InterviewDetails>
-        </InterviewInfo>
-        <HeaderActions>
-          <HeaderButton 
-            icon={<ShareAltOutlined />} 
-            onClick={handleShare}
-          >
-            Share Link
-          </HeaderButton>
-          <ExitButton
-            danger
-            icon={<ArrowLeftOutlined />}
-            onClick={handleBack}
-          >
-            Exit
-          </ExitButton>
-        </HeaderActions>
-      </Header>
-      
       <ContentArea>
-        <RoleBadge isInterviewer={isInterviewer}>
-          {isInterviewer ? 'Interviewer' : 'Candidate'}
-        </RoleBadge>
+
+        
+
+
         {socket && (
           <InterviewPanel 
             socket={socket} 

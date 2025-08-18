@@ -355,6 +355,65 @@ app.post('/api/interviews', verifyToken, async (req, res) => {
   }
 });
 
+// =================================================================================================
+// INTERVIEW JOIN ENDPOINT (Must come before other interview routes to prevent conflicts)
+// =================================================================================================
+
+// Replace or update the /api/interviews/:interviewId/join endpoint to allow passcode-only access
+app.post('/api/interviews/:interviewId/join', async (req, res) => {
+  try {
+    const { interviewId } = req.params;
+    const { passcode, interviewer = false } = req.body;
+    
+    console.log('Join interview request:', { interviewId, passcode, interviewer });
+    
+    if (!passcode) {
+      return res.status(400).json({ message: 'Passcode is required' });
+    }
+    
+    const interview = await Interview.findById(interviewId);
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+    
+    if (interview.passcode !== passcode) {
+      return res.status(401).json({ message: 'Invalid passcode' });
+    }
+    
+    // Log successful join
+    console.log('User joined interview:', { interviewId, interviewer, passcode: '***' });
+    
+    // Return the interview data with success message
+    return res.json({ 
+      success: true,
+      message: 'Successfully joined interview',
+      interview: {
+        _id: interview._id,
+        title: interview.title,
+        candidateName: interview.candidateName,
+        candidateEmail: interview.candidateEmail,
+        position: interview.position,
+        scheduledTime: interview.scheduledTime,
+        status: interview.status,
+        passcode: interview.passcode,
+        interviewer: interview.interviewer,
+        duration: interview.duration
+      }
+    });
+  } catch (error) {
+    console.error('Join interview error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error occurred while joining interview',
+      error: error.message 
+    });
+  }
+});
+
+// =================================================================================================
+// INTERVIEW MANAGEMENT ENDPOINTS
+// =================================================================================================
+
 // Get Interview Details
 app.get('/api/interviews/:interviewId', verifyToken, async (req, res) => {
   try {
@@ -587,29 +646,6 @@ app.get('/api/interviews/:interviewId/verify-user', verifyToken, async (req, res
   }
 });
 
-// Replace or update the /api/interviews/:interviewId/join endpoint to allow passcode-only access
-app.post('/api/interviews/:interviewId/join', async (req, res) => {
-  try {
-    const { interviewId } = req.params;
-    const { passcode } = req.body;
-    if (!passcode) {
-      return res.status(400).json({ message: 'Passcode is required' });
-    }
-    const interview = await Interview.findById(interviewId);
-    if (!interview) {
-      return res.status(404).json({ message: 'Interview not found' });
-    }
-    if (interview.passcode !== passcode) {
-      return res.status(401).json({ message: 'Invalid passcode' });
-    }
-    // Optionally: return only safe interview data
-    return res.json({ interview });
-  } catch (error) {
-    console.error('Join interview error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 // Update interview details
 app.put('/api/interviews/:interviewId', verifyToken, async (req, res) => {
   try {
@@ -672,7 +708,18 @@ app.post('/api/interviews/find-by-passcode', async (req, res) => {
     if (!interview) {
       return res.status(404).json({ message: 'Invalid passcode' });
     }
-    return res.json({ interviewId: interview._id });
+    // Return full interview data so candidate can see their info
+    return res.json({
+      interviewId: interview._id,
+      candidateName: interview.candidateName,
+      candidateEmail: interview.candidateEmail,
+      interviewerName: interview.interviewerName,
+      interviewerEmail: interview.interviewerEmail,
+      position: interview.position,
+      scheduledTime: interview.scheduledTime,
+      title: interview.title,
+      passcode: interview.passcode
+    });
   } catch (error) {
     console.error('Error in find-by-passcode:', error);
     res.status(500).json({ message: 'Server error' });
@@ -771,13 +818,24 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('startTimer', async ({ interviewId }) => {
+  socket.on('startTimer', async ({ interviewId, resumeFrom }) => {
     try {
       const interview = await Interview.findById(interviewId);
       if (interview && !interview.timer.isRunning) {
         if (!interview.timer) interview.timer = {};
-        interview.timer.startTime = new Date();
-        interview.timer.isRunning = true;
+        
+        if (resumeFrom !== undefined) {
+          // Resume case - preserve elapsed time and adjust start time
+          interview.timer.elapsedSeconds = resumeFrom;
+          interview.timer.startTime = new Date();
+          interview.timer.isRunning = true;
+        } else {
+          // Start case - start from 0
+          interview.timer.startTime = new Date();
+          interview.timer.elapsedSeconds = 0;
+          interview.timer.isRunning = true;
+        }
+        
         interview.status = 'in-progress';
         await interview.save();
         io.to(interviewId).emit('timerStarted', { 
@@ -840,6 +898,9 @@ io.on('connection', (socket) => {
   // Multi-user video chat and chat signaling
   // Store users in each interview video room
   const videoRooms = io.videoRooms || (io.videoRooms = {});
+  
+  // Compiler session management
+  const compilerSessions = io.compilerSessions || (io.compilerSessions = {});
 
   socket.on('join-video-room', ({ interviewId, userId }) => {
     const room = interviewId + '-video';
@@ -868,6 +929,91 @@ io.on('connection', (socket) => {
   socket.on('video-chat-message', ({ interviewId, userId, message }) => {
     const room = interviewId + '-video';
     io.to(room).emit('video-chat-message', { userId, message, timestamp: Date.now() });
+  });
+
+  // Compiler session events
+  socket.on('joinCompiler', ({ compilerId }) => {
+    console.log(`👥 Compiler session ${compilerId} joined by socket ${socket.id}`);
+    
+    // Join the compiler room
+    socket.join(compilerId);
+    
+    // Initialize compiler session if it doesn't exist
+    if (!compilerSessions[compilerId]) {
+      compilerSessions[compilerId] = {
+        participants: [],
+        code: '',
+        language: 'javascript'
+      };
+    }
+    
+    // Add participant to the session
+    const participant = {
+      id: socket.id,
+      joinedAt: new Date(),
+      userName: `User_${socket.id.substr(0, 6)}`
+    };
+    
+    compilerSessions[compilerId].participants.push(participant);
+    
+    // Notify all participants in the room
+    io.to(compilerId).emit('compilerJoined', {
+      compilerId,
+      participants: compilerSessions[compilerId].participants,
+      code: compilerSessions[compilerId].code,
+      language: compilerSessions[compilerId].language
+    });
+    
+    // Notify others that someone joined
+    socket.to(compilerId).emit('compilerParticipantJoined', {
+      compilerId,
+      participants: compilerSessions[compilerId].participants,
+      userName: participant.userName
+    });
+  });
+
+  socket.on('compilerCodeUpdate', ({ compilerId, code, language }) => {
+    console.log(`📝 Compiler code update for ${compilerId}`);
+    
+    // Update the compiler session
+    if (compilerSessions[compilerId]) {
+      compilerSessions[compilerId].code = code;
+      compilerSessions[compilerId].language = language;
+    }
+    
+    // Broadcast to all participants in the compiler session
+    socket.to(compilerId).emit('compilerCodeUpdate', {
+      compilerId,
+      code,
+      language
+    });
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`⚡ Client disconnected: ${socket.id}`);
+    
+    // Remove from all compiler sessions
+    Object.keys(compilerSessions).forEach(compilerId => {
+      const session = compilerSessions[compilerId];
+      const participantIndex = session.participants.findIndex(p => p.id === socket.id);
+      
+      if (participantIndex !== -1) {
+        const removedParticipant = session.participants[participantIndex];
+        session.participants.splice(participantIndex, 1);
+        
+        // Notify remaining participants
+        io.to(compilerId).emit('compilerParticipantLeft', {
+          compilerId,
+          participants: session.participants,
+          userName: removedParticipant.userName
+        });
+        
+        // Clean up empty sessions
+        if (session.participants.length === 0) {
+          delete compilerSessions[compilerId];
+        }
+      }
+    });
   });
 
   socket.on('video-chat-dm', ({ interviewId, fromUserId, toSocketId, message }) => {

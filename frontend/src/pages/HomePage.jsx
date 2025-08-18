@@ -8,15 +8,48 @@ import { useEffect } from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL ;
 
+// Custom styles for dark theme inputs
+const darkInputStyles = `
+  .dark-input .ant-input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    border-radius: 12px !important;
+  }
+  
+  .dark-input .ant-input::placeholder {
+    color: #fff !important;
+  }
+  
+  .dark-input .ant-input:focus,
+  .dark-input .ant-input:hover {
+    border-color: #61dafb !important;
+    box-shadow: 0 0 0 2px rgba(97, 218, 251, 0.2) !important;
+  }
+  
+  .dark-modal .ant-modal-title {
+    color: #61dafb !important;
+  }
+  
+  .dark-modal .ant-modal-close {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+  
+  .dark-modal .ant-modal-close:hover {
+    color: #61dafb !important;
+  }
+`;
+
 const Footer = styled.footer`
   width: 100%;
-  padding: 1.5rem 0 1rem 0;
+  padding: clamp(1rem, 3vw, 1.5rem) 0 clamp(0.75rem, 2vw, 1rem) 0;
   text-align: center;
   color: #888;
-  font-size: 1rem;
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
   background: transparent;
-  margin-top: 4rem;
+  margin-top: clamp(2rem, 6vw, 4rem);
   letter-spacing: 0.02em;
+  
   a {
     color: #61dafb;
     text-decoration: none;
@@ -24,6 +57,18 @@ const Footer = styled.footer`
     &:hover {
       text-decoration: underline;
     }
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    margin-top: 2rem;
+    padding: 1rem 0 0.75rem 0;
+  }
+  
+  @media (max-width: 480px) {
+    margin-top: 1.5rem;
+    padding: 0.75rem 0 0.5rem 0;
+    font-size: 0.8rem;
   }
 `;
 
@@ -33,22 +78,26 @@ const HomeContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: clamp(1rem, 4vw, 2rem);
   text-align: center;
 
   @media (max-width: 900px) {
-    padding: 1.5rem 1rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
   }
 
   @media (max-width: 600px) {
-    padding: 1rem 0.5rem;
+    padding: clamp(0.75rem, 2vw, 1rem);
+  }
+  
+  @media (max-width: 480px) {
+    padding: clamp(0.5rem, 1.5vw, 0.75rem);
   }
 `
 
 const Title = styled(motion.h1)`
-  font-size: 4.5rem;
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
   font-weight: 800;
-  margin-bottom: 1rem;
+  margin-bottom: clamp(0.75rem, 2vw, 1rem);
   background: linear-gradient(45deg, #61DAFB, #007ACC);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -56,27 +105,27 @@ const Title = styled(motion.h1)`
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: clamp(0.3rem, 1vw, 0.5rem);
 
   &::after {
     content: '';
     position: absolute;
-    bottom: -10px;
+    bottom: clamp(-8px, -2vw, -10px);
     left: 50%;
     transform: translateX(-50%);
-    width: 100px;
-    height: 4px;
+    width: clamp(60px, 15vw, 100px);
+    height: clamp(3px, 1vw, 4px);
     background: linear-gradient(45deg, #61DAFB, #007ACC);
-    border-radius: 2px;
+    border-radius: clamp(1px, 0.5vw, 2px);
   }
 
   .code-brackets {
-    font-size: 3.5rem;
+    font-size: clamp(2rem, 6vw, 3.5rem);
     font-weight: 900;
     color: #61DAFB;
     opacity: 1;
     text-shadow: 0 0 4px #61dafb, 0 0 8px #007acc55;
-    margin-right: 0.3rem;
+    margin-right: clamp(0.2rem, 0.5vw, 0.3rem);
     animation: blinkLogo 1.2s infinite alternate;
   }
 
@@ -86,50 +135,68 @@ const Title = styled(motion.h1)`
   }
 
   @media (max-width: 900px) {
-    font-size: 3.2rem;
-    .code-brackets { font-size: 2.2rem; }
+    font-size: clamp(2.5rem, 6vw, 3.2rem);
+    .code-brackets { font-size: clamp(1.8rem, 4vw, 2.2rem); }
   }
+  
   @media (max-width: 600px) {
-    font-size: 2.1rem;
-    .code-brackets { font-size: 1.3rem; }
+    font-size: clamp(2rem, 5vw, 2.1rem);
+    .code-brackets { font-size: clamp(1.2rem, 3vw, 1.3rem); }
+  }
+  
+  @media (max-width: 480px) {
+    font-size: clamp(1.8rem, 4.5vw, 2rem);
+    .code-brackets { font-size: clamp(1rem, 2.5vw, 1.2rem); }
+    gap: 0.2rem;
   }
 `
 
 const Subtitle = styled(motion.p)`
-  font-size: 1.5rem;
+  font-size: clamp(1.125rem, 3vw, 1.5rem);
   color: #a0a0a0;
-  margin-bottom: 3rem;
-  max-width: 600px;
+  margin-bottom: clamp(2rem, 5vw, 3rem);
+  max-width: clamp(400px, 80vw, 600px);
   line-height: 1.6;
 
   @media (max-width: 900px) {
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
+    margin-bottom: clamp(1.5rem, 4vw, 2rem);
   }
+  
   @media (max-width: 600px) {
-    font-size: 1rem;
-    margin-bottom: 1.2rem;
+    font-size: clamp(0.9rem, 2.2vw, 1rem);
+    margin-bottom: clamp(1rem, 3vw, 1.2rem);
+  }
+  
+  @media (max-width: 480px) {
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
+    margin-bottom: clamp(0.75rem, 2.5vw, 1rem);
   }
 `
 
 const ButtonContainer = styled.div`
   display: flex;
-  gap: 2rem;
-  margin-top: 2rem;
+  gap: clamp(1rem, 3vw, 2rem);
+  margin-top: clamp(1.5rem, 4vw, 2rem);
 
   @media (max-width: 600px) {
     flex-direction: column;
-    gap: 1rem;
+    gap: clamp(0.75rem, 2vw, 1rem);
     width: 100%;
     align-items: center;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 0.75rem;
+    margin-top: clamp(1rem, 3vw, 1.5rem);
   }
 `
 
 const Button = styled(motion.button)`
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
+  padding: clamp(0.75rem, 2.5vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
   border: none;
-  border-radius: 8px;
+  border-radius: clamp(6px, 1.5vw, 8px);
   cursor: pointer;
   background: ${props => props.primary 
     ? 'linear-gradient(45deg, #61DAFB, #007ACC)' 
@@ -142,7 +209,7 @@ const Button = styled(motion.button)`
   overflow: hidden;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: clamp(0.3rem, 1vw, 0.5rem);
 
   &::before {
     content: '';
@@ -170,45 +237,60 @@ const Button = styled(motion.button)`
   }
 
   .button-icon {
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
   }
 
   @media (max-width: 900px) {
-    font-size: 1rem;
-    padding: 0.8rem 1.2rem;
+    font-size: clamp(0.9rem, 2.2vw, 1rem);
+    padding: clamp(0.7rem, 2vw, 0.8rem) clamp(1rem, 3vw, 1.2rem);
   }
+  
   @media (max-width: 600px) {
-    font-size: 0.95rem;
-    padding: 0.7rem 1rem;
-    width: 90%;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    padding: clamp(0.6rem, 1.8vw, 0.7rem) clamp(0.8rem, 2.5vw, 1rem);
+    width: clamp(80%, 90%, 90%);
     justify-content: center;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    padding: 0.6rem 0.8rem;
+    width: 85%;
   }
 `
 
 const FeatureGrid = styled(motion.div)`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  margin-top: 4rem;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 40vw, 280px), 1fr));
+  gap: clamp(1.5rem, 4vw, 2rem);
+  margin-top: clamp(2rem, 6vw, 4rem);
   width: 100%;
   max-width: 1200px;
 
   @media (max-width: 900px) {
-    gap: 1.2rem;
-    margin-top: 2rem;
+    gap: clamp(1rem, 3vw, 1.2rem);
+    margin-top: clamp(1.5rem, 4vw, 2rem);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
+  
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
-    gap: 1rem;
-    margin-top: 1.2rem;
+    gap: clamp(0.75rem, 2vw, 1rem);
+    margin-top: clamp(1rem, 3vw, 1.2rem);
     max-width: 98vw;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 0.75rem;
+    margin-top: 1rem;
+    max-width: 95vw;
   }
 `
 
 const FeatureCard = styled(motion.div)`
   background: rgba(255, 255, 255, 0.05);
-  padding: 2rem;
-  border-radius: 12px;
+  padding: clamp(1.5rem, 4vw, 2rem);
+  border-radius: clamp(8px, 2vw, 12px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
@@ -238,32 +320,40 @@ const FeatureCard = styled(motion.div)`
 
   h3 {
     color: #61DAFB;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
+    margin-bottom: clamp(0.75rem, 2vw, 1rem);
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: clamp(0.3rem, 1vw, 0.5rem);
 
     &::before {
       content: '⚡';
-      font-size: 1.2rem;
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
     }
   }
 
   p {
     color: #a0a0a0;
     line-height: 1.6;
+    font-size: clamp(0.875rem, 2.2vw, 1rem);
   }
 
   @media (max-width: 900px) {
-    padding: 1.2rem;
-    h3 { font-size: 1.1rem; }
-    p { font-size: 0.98rem; }
+    padding: clamp(1rem, 3vw, 1.2rem);
+    h3 { font-size: clamp(1.1rem, 2.5vw, 1.1rem); }
+    p { font-size: clamp(0.9rem, 2.2vw, 0.98rem); }
   }
+  
   @media (max-width: 600px) {
-    padding: 0.8rem;
-    h3 { font-size: 1rem; }
-    p { font-size: 0.93rem; }
+    padding: clamp(0.8rem, 2.5vw, 0.8rem);
+    h3 { font-size: clamp(1rem, 2.5vw, 1rem); }
+    p { font-size: clamp(0.85rem, 2vw, 0.93rem); }
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+    h3 { font-size: 0.9rem; }
+    p { font-size: 0.8rem; }
   }
 `
 
@@ -292,38 +382,32 @@ const HomePage = () => {
   const [isPasscodeModalVisible, setIsPasscodeModalVisible] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [passcodeLoading, setPasscodeLoading] = useState(false);
+  const [isInterviewerMode, setIsInterviewerMode] = useState(false);
 
   const { isAuthenticated, user, loading } = useAuth();
-  console.log('[HomePage] Auth state:', { isAuthenticated, user, loading });
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    console.log('HomePage auth debug:', { isAuthenticated, user });
-  }, [isAuthenticated, user]);
-
-  useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('startInterview') === 'true') {
-      if (isAuthenticated) {
-        setIsPasscodeModalVisible(true);
-      } else {
-        navigate(`/login?redirect=/home?startInterview=true`);
-      }
-    }
-    // If modal is open but user is not authenticated, close modal and redirect
-    if (isPasscodeModalVisible && !isAuthenticated) {
-      setIsPasscodeModalVisible(false);
-      navigate(`/login?redirect=/home?startInterview=true`);
-    }
-  }, [isAuthenticated, location.search, navigate, isPasscodeModalVisible]);
-
-  const handleStartInterviewClick = () => {
-    if (!isAuthenticated) {
-      navigate(`/login?redirect=/home?startInterview=true`);
-    } else {
       setIsPasscodeModalVisible(true);
     }
+  }, [location.search]);
+
+  // Inject custom styles for dark theme
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = darkInputStyles;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
+  const handleStartInterviewClick = () => {
+    setIsPasscodeModalVisible(true);
   };
 
   const handlePasscodeSubmit = async () => {
@@ -342,8 +426,18 @@ const HomePage = () => {
       if (!response.ok) {
         throw new Error(data.message || 'Invalid passcode');
       }
-      // Redirect to interview page
-      window.location.href = `/interview/${data.interviewId}?passcode=${encodeURIComponent(passcode)}`;
+      // Redirect to interview page with full interview data
+      const queryParams = new URLSearchParams({
+        passcode: encodeURIComponent(passcode),
+        candidateName: encodeURIComponent(data.candidateName || ''),
+        candidateEmail: encodeURIComponent(data.candidateEmail || ''),
+        interviewerName: encodeURIComponent(data.interviewerName || ''),
+        interviewerEmail: encodeURIComponent(data.interviewerEmail || ''),
+        position: encodeURIComponent(data.position || ''),
+        scheduledTime: encodeURIComponent(data.scheduledTime || ''),
+        title: encodeURIComponent(data.title || '')
+      });
+      window.location.href = `/interview/${data.interviewId}?${queryParams.toString()}`;
     } catch (error) {
       message.error(error.message || 'Invalid passcode');
     } finally {
@@ -419,30 +513,161 @@ const HomePage = () => {
         &copy; {new Date().getFullYear()} kodr &mdash; Modern Interview Platform
         <a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a>
       </Footer>
-      {isAuthenticated && isPasscodeModalVisible && (
+      {isPasscodeModalVisible && (
         <Modal
-          title="Enter Passcode to Join Interview"
+          title={
+            <span style={{ 
+              color: '#61dafb', 
+              fontSize: '1.5rem', 
+              fontWeight: '700',
+              textAlign: 'center',
+              display: 'block'
+            }}>
+              {isInterviewerMode ? "Sign in as Interviewer" : "Enter Passcode to Join Interview"}
+            </span>
+          }
           visible={isPasscodeModalVisible}
-          onCancel={() => setIsPasscodeModalVisible(false)}
+          onCancel={() => {
+            setIsPasscodeModalVisible(false);
+            setIsInterviewerMode(false);
+          }}
           footer={null}
           centered
+          className="dark-modal"
+          styles={{
+            body: { 
+              background: 'linear-gradient(135deg, #232526 0%, #1a1a1a 100%)',
+              borderRadius: '16px',
+              padding: '2rem'
+            },
+            header: {
+              background: 'linear-gradient(135deg, #232526 0%, #1a1a1a 100%)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '16px 16px 0 0'
+            },
+            content: {
+              background: 'linear-gradient(135deg, #232526 0%, #1a1a1a 100%)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+            }
+          }}
         >
-          <Input
-            placeholder="Enter passcode"
-            value={passcode}
-            onChange={e => setPasscode(e.target.value)}
-            onPressEnter={handlePasscodeSubmit}
-            size="large"
-            style={{ marginBottom: 16 }}
-          />
-          <AntdButton
-            type="primary"
-            block
-            loading={passcodeLoading}
-            onClick={handlePasscodeSubmit}
-          >
-            Join Interview
-          </AntdButton>
+          {isInterviewerMode ? (
+            <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+              <p style={{ color: '#b0b8c9', marginBottom: '2rem', fontSize: '1rem' }}>
+                To join as an interviewer, please use your interviewer account credentials.
+              </p>
+              <AntdButton
+                type="primary"
+                block
+                size="large"
+                onClick={() => {
+                  setIsPasscodeModalVisible(false);
+                  navigate('/interviewer-login');
+                }}
+                style={{ 
+                  marginBottom: '1rem',
+                  background: 'linear-gradient(45deg, #61DAFB, #007ACC)',
+                  border: 'none',
+                  height: '48px',
+                  borderRadius: '12px',
+                  fontWeight: '600'
+                }}
+              >
+                Go to Interviewer Login
+              </AntdButton>
+              <AntdButton
+                type="default"
+                block
+                onClick={() => setIsInterviewerMode(false)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#fff',
+                  height: '48px',
+                  borderRadius: '12px',
+                  fontWeight: '600'
+                }}
+              >
+                Back to Passcode Entry
+              </AntdButton>
+            </div>
+          ) : (
+            <>
+              <Input
+                placeholder="Enter passcode"
+                value={passcode}
+                onChange={e => setPasscode(e.target.value)}
+                onPressEnter={handlePasscodeSubmit}
+                size="large"
+                style={{ 
+                  marginBottom: '1.5rem',
+                  height: '48px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: '#fff',
+                  fontSize: '1rem'
+                }}
+                className="dark-input"
+              />
+              <AntdButton
+                type="primary"
+                block
+                loading={passcodeLoading}
+                onClick={handlePasscodeSubmit}
+                style={{ 
+                  marginBottom: '1.5rem',
+                  background: 'linear-gradient(45deg, #61DAFB, #007ACC)',
+                  border: 'none',
+                  height: '48px',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  fontSize: '1rem'
+                }}
+              >
+                Join Interview
+              </AntdButton>
+              
+              {/* Interviewer sign-in option */}
+              <div style={{ textAlign: 'center', marginTop: '1.5rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <p style={{ color: '#b0b8c9', fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+                  Are you an interviewer?
+                </p>
+                <AntdButton
+                  type="link"
+                  onClick={() => setIsInterviewerMode(true)}
+                  style={{ 
+                    padding: 0, 
+                    height: 'auto', 
+                    color: '#61dafb',
+                    fontSize: '1rem',
+                    fontWeight: '600'
+                  }}
+                >
+                  Sign in as Interviewer
+                </AntdButton>
+              </div>
+              
+              {/* Authentication notice for candidates */}
+              {!isAuthenticated && (
+                <div style={{ 
+                  textAlign: 'center', 
+                  marginTop: '1.5rem', 
+                  padding: '1.5rem', 
+                  background: 'rgba(97, 218, 251, 0.1)', 
+                  borderRadius: '12px',
+                  border: '1px solid rgba(97, 218, 251, 0.2)'
+                }}>
+                  <p style={{ color: '#61dafb', fontSize: '0.9rem', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.2rem' }}>💡</span>
+                    You can join as a candidate without signing in. Just enter the passcode above.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </Modal>
       )}
     </HomeContainer>

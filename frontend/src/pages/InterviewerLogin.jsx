@@ -9,23 +9,32 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: clamp(1rem, 4vw, 2rem);
   background: linear-gradient(135deg, #232526 0%, #1a1a1a 100%);
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    padding: clamp(0.75rem, 3vw, 1.5rem);
+  }
+  
+  @media (max-width: 480px) {
+    padding: clamp(0.5rem, 2vw, 1rem);
+  }
 `;
 
 const Card = styled.div`
   background: rgba(34, 40, 49, 0.85);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
-  border-radius: 22px;
+  border-radius: clamp(16px, 4vw, 22px);
   border: 2px solid transparent;
   background-clip: padding-box;
-  padding: 2.5rem;
+  padding: clamp(2rem, 5vw, 2.5rem);
   width: 100%;
-  max-width: 400px;
+  max-width: clamp(320px, 80vw, 400px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: clamp(1.25rem, 3vw, 1.5rem);
   position: relative;
 
   &:before {
@@ -33,28 +42,63 @@ const Card = styled.div`
     position: absolute;
     inset: -2px;
     z-index: -1;
-    border-radius: 24px;
+    border-radius: clamp(18px, 4.5vw, 24px);
     background: linear-gradient(120deg, #61dafb, #007acc, #232526 80%);
     opacity: 0.7;
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    padding: clamp(1.75rem, 4vw, 2.25rem);
+    max-width: clamp(300px, 85vw, 380px);
+    gap: 1.25rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: clamp(1.5rem, 3.5vw, 2rem);
+    max-width: clamp(280px, 90vw, 350px);
+    gap: 1rem;
   }
 `;
 
 const Title = styled.h1`
   color: #61dafb;
-  font-size: 2.5rem;
+  font-size: clamp(2rem, 5vw, 2.5rem);
   font-weight: 800;
-  margin-bottom: 1rem;
+  margin-bottom: clamp(0.75rem, 2vw, 1rem);
   text-align: center;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: clamp(0.75rem, 2vw, 1rem);
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    font-size: clamp(1.75rem, 4.5vw, 2.25rem);
+    margin-bottom: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+  }
 `;
 
 const Form = styled.form`
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: clamp(1.25rem, 3vw, 1.5rem);
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    gap: 1.25rem;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 1rem;
+  }
 `;
 
 const InputGroup = styled.div`
@@ -64,12 +108,12 @@ const InputGroup = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: 1rem 1rem 1rem 3rem;
-  border-radius: 12px;
+  padding: clamp(0.875rem, 2.5vw, 1rem) clamp(0.875rem, 2.5vw, 1rem) clamp(0.875rem, 2.5vw, 1rem) clamp(2.5rem, 6vw, 3rem);
+  border-radius: clamp(10px, 2.5vw, 12px);
   border: 1.5px solid ${props => props.error ? '#ff4d4f' : '#333'};
   background: rgba(255, 255, 255, 0.05);
   color: #fff;
-  font-size: 1.1rem;
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
   outline: none;
   transition: all 0.3s ease;
 
@@ -77,29 +121,53 @@ const Input = styled.input`
     border-color: #61dafb;
     box-shadow: 0 0 0 2px rgba(97, 218, 251, 0.2);
   }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    padding: 0.875rem 0.875rem 0.875rem 2.75rem;
+    font-size: 1rem;
+    border-radius: 10px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
 `;
 
 const Icon = styled.div`
   position: absolute;
-  left: 1rem;
+  left: clamp(0.875rem, 2.5vw, 1rem);
   top: 50%;
   transform: translateY(-50%);
   color: #61dafb;
-  font-size: 1.2rem;
+  font-size: clamp(1.1rem, 2.8vw, 1.2rem);
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    left: 0.875rem;
+    font-size: 1.1rem;
+  }
+  
+  @media (max-width: 480px) {
+    left: 0.75rem;
+    font-size: 1rem;
+  }
 `;
 
 const Button = styled.button`
   width: 100%;
-  padding: 1rem;
-  border-radius: 12px;
+  padding: clamp(0.875rem, 2.5vw, 1rem);
+  border-radius: clamp(10px, 2.5vw, 12px);
   border: none;
   background: linear-gradient(90deg, #61dafb, #007acc);
   color: #fff;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 1rem;
+  margin-top: clamp(0.75rem, 2vw, 1rem);
 
   &:hover {
     transform: translateY(-2px);
@@ -111,20 +179,46 @@ const Button = styled.button`
     cursor: not-allowed;
     transform: none;
   }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    padding: 0.875rem;
+    font-size: 1.1rem;
+    margin-top: 0.75rem;
+    border-radius: 10px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    border-radius: 8px;
+  }
 `;
 
 const ErrorMessage = styled.div`
   color: #ff4d4f;
-  font-size: 0.9rem;
-  margin-top: -0.5rem;
+  font-size: clamp(0.8rem, 2.2vw, 0.9rem);
+  margin-top: clamp(-0.25rem, -1vw, -0.5rem);
   text-align: left;
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+    margin-top: -0.25rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    margin-top: -0.25rem;
+  }
 `;
 
 const Divider = styled.div`
   display: flex;
   align-items: center;
   width: 100%;
-  margin: 1.5rem 0;
+  margin: clamp(1.25rem, 3vw, 1.5rem) 0;
   color: #666;
 
   &::before,
@@ -135,27 +229,46 @@ const Divider = styled.div`
   }
 
   span {
-    padding: 0 1rem;
-    font-size: 0.9rem;
+    padding: 0 clamp(0.75rem, 2vw, 1rem);
+    font-size: clamp(0.8rem, 2.2vw, 0.9rem);
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    margin: 1.25rem 0;
+    
+    span {
+      padding: 0 0.75rem;
+      font-size: 0.85rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    margin: 1rem 0;
+    
+    span {
+      padding: 0 0.5rem;
+      font-size: 0.8rem;
+    }
   }
 `;
 
 const GoogleButton = styled.button`
   width: 100%;
-  padding: 1rem;
-  border-radius: 12px;
+  padding: clamp(0.875rem, 2.5vw, 1rem);
+  border-radius: clamp(10px, 2.5vw, 12px);
   border: 1.5px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
   color: #fff;
-  font-size: 1.1rem;
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.8rem;
-  margin-top: 1rem;
+  gap: clamp(0.6rem, 1.5vw, 0.8rem);
+  margin-top: clamp(0.75rem, 2vw, 1rem);
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -163,31 +276,78 @@ const GoogleButton = styled.button`
   }
 
   svg {
-    font-size: 1.3rem;
+    font-size: clamp(1.2rem, 3vw, 1.3rem);
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    padding: 0.875rem;
+    font-size: 1rem;
+    margin-top: 0.75rem;
+    border-radius: 10px;
+    gap: 0.6rem;
+    
+    svg {
+      font-size: 1.2rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    border-radius: 8px;
+    gap: 0.5rem;
+    
+    svg {
+      font-size: 1.1rem;
+    }
   }
 `;
 
 const GoogleSignInContainer = styled.div`
   width: 100%;
-  margin-top: 1rem;
+  margin-top: clamp(0.75rem, 2vw, 1rem);
   display: flex;
   justify-content: center;
   align-items: center;
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    margin-top: 0.75rem;
+  }
+  
+  @media (max-width: 480px) {
+    margin-top: 0.5rem;
+  }
 `;
 
 const ToggleButton = styled.button`
   background: none;
   border: none;
   color: #61dafb;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 2.2vw, 0.9rem);
   cursor: pointer;
-  padding: 0.5rem;
-  margin-top: 1rem;
+  padding: clamp(0.4rem, 1.5vw, 0.5rem);
+  margin-top: clamp(0.75rem, 2vw, 1rem);
   text-decoration: underline;
   transition: all 0.3s ease;
 
   &:hover {
     color: #007acc;
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+    padding: 0.4rem;
+    margin-top: 0.75rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    padding: 0.3rem;
+    margin-top: 0.5rem;
   }
 `;
 

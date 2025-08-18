@@ -10,6 +10,7 @@ import InterviewerDashboard from './pages/InterviewerDashboard'
 import RoleSelection from './pages/RoleSelection'
 import InterviewerLogin from './pages/InterviewerLogin'
 import InterviewPage from './pages/InterviewPage'
+import CompilerPage from './pages/CompilerPage'
 import Background3D from './components/Background3D'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
@@ -20,6 +21,15 @@ const AppContainer = styled.div`
   background: linear-gradient(to bottom, #1a1a1a, #2d2d2d);
   color: #ffffff;
   overflow: auto; /* Allow scrolling */
+  
+  /* Responsive design improvements */
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+  }
 `
 
 const CanvasContainer = styled.div`
@@ -29,11 +39,30 @@ const CanvasContainer = styled.div`
   width: 100%;
   height: 100%;
   z-index: 1;
+  
+  /* Responsive canvas adjustments */
+  @media (max-width: 768px) {
+    /* Reduce canvas complexity on mobile for better performance */
+  }
+  
+  @media (max-width: 480px) {
+    /* Further optimize for small screens */
+  }
 `
 
 const ContentContainer = styled.div`
   position: relative;
   z-index: 2;
+  min-height: 100vh;
+  
+  /* Responsive content adjustments */
+  @media (max-width: 768px) {
+    padding: 0 0.5rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0 0.25rem;
+  }
 `
 
 function App() {
@@ -84,7 +113,11 @@ function App() {
               <Route path="/login" element={<InterviewerLogin />} />
               <Route 
                 path="/compiler" 
-                element={<InterviewPanelPage />} 
+                element={<CompilerPage />} 
+              />
+              <Route 
+                path="/compiler/:compilerId" 
+                element={<CompilerPage />} 
               />
               <Route 
                 path="/interview/:interviewId" 

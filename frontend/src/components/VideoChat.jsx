@@ -6,24 +6,36 @@ import { FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaDesktop, FaRe
 const initialMediaState = { audio: true, video: true };
 
 export default function VideoChat({ socket, interviewId, userId }) {
-  // Add keyframes for red glow (move this to the top)
-  const pipGlowStyle = `@keyframes pip-red-glow { 0% { border-color: #ff1744; box-shadow: 0 0 8px #ff1744; } 100% { border-color: #ff5252; box-shadow: 0 0 16px #ff5252; } }`;
   const pipStyle = {
     position: 'fixed',
-    bottom: 24,
-    right: 24,
-    width: 320,
-    height: 240,
+    bottom: 'clamp(16px, 3vw, 24px)',
+    right: 'clamp(16px, 3vw, 24px)',
+    width: 'clamp(280px, 40vw, 320px)',
+    height: 'clamp(210px, 30vw, 240px)',
     zIndex: 2000,
     background: '#232526',
-    borderRadius: 16,
+    borderRadius: 'clamp(12px, 2vw, 16px)',
     boxShadow: '0 2px 16px rgba(0,0,0,0.6)',
-    border: '4px solid transparent',
-    animation: 'pip-red-glow 1.2s infinite alternate',
+    border: 'clamp(2px, 0.5vw, 4px) solid rgba(255, 255, 255, 0.2)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    // Mobile responsive improvements
+    '@media (max-width: 768px)': {
+      bottom: '16px',
+      right: '16px',
+      width: '280px',
+      height: '210px',
+      borderRadius: '12px',
+    },
+    '@media (max-width: 480px)': {
+      bottom: '12px',
+      right: '12px',
+      width: '260px',
+      height: '195px',
+      borderRadius: '10px',
+    }
   };
 
   const [peers, setPeers] = useState({}); // { socketId: PeerInstance }
@@ -70,7 +82,6 @@ export default function VideoChat({ socket, interviewId, userId }) {
   const handleMaximize = () => {
     const elem = fullScreenContainerRef.current;
     if (!elem) {
-      console.error('FullScreen container ref is null');
       return;
     }
     try {
@@ -78,10 +89,8 @@ export default function VideoChat({ socket, interviewId, userId }) {
       else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
       else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen();
       else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-      else alert('Fullscreen API is not supported in this browser.');
-      console.log('Requested fullscreen on', elem);
     } catch (e) {
-      console.error('Fullscreen request failed:', e);
+      // Silent fail for professional behavior
     }
   };
 
@@ -92,10 +101,8 @@ export default function VideoChat({ socket, interviewId, userId }) {
       else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
       else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
       else if (document.msExitFullscreen) document.msExitFullscreen();
-      else alert('Fullscreen API is not supported in this browser.');
-      console.log('Exited fullscreen');
     } catch (e) {
-      console.error('Exit fullscreen failed:', e);
+      // Silent fail for professional behavior
     }
   };
 
@@ -294,7 +301,6 @@ export default function VideoChat({ socket, interviewId, userId }) {
     if (!isBrowserFullScreen && pipVideoRef.current && pipStream) {
       pipVideoRef.current.srcObject = pipStream;
       pipVideoRef.current.play && pipVideoRef.current.play();
-      console.log('PiP video srcObject set:', pipStream);
     }
   }, [pipStream, isBrowserFullScreen]);
 
@@ -303,9 +309,23 @@ export default function VideoChat({ socket, interviewId, userId }) {
     if (isBrowserFullScreen && fullScreenVideoRef.current && pipStream) {
       fullScreenVideoRef.current.srcObject = pipStream;
       fullScreenVideoRef.current.play && fullScreenVideoRef.current.play();
-      console.log('Fullscreen video srcObject set:', pipStream);
     }
   }, [pipStream, isBrowserFullScreen]);
+
+  // Enhanced fullscreen video effect - ensure video is set when entering fullscreen
+  useEffect(() => {
+    if (isBrowserFullScreen) {
+
+      
+      // Force a re-render of video elements when entering fullscreen
+      setTimeout(() => {
+        if (fullScreenVideoRef.current && pipStream) {
+          fullScreenVideoRef.current.srcObject = pipStream;
+          fullScreenVideoRef.current.play && fullScreenVideoRef.current.play();
+        }
+      }, 100);
+    }
+  }, [isBrowserFullScreen, localStream, participants, streams, pipStream]);
 
   // For status dot
   function getStatusDot(id) {
@@ -324,7 +344,7 @@ export default function VideoChat({ socket, interviewId, userId }) {
       <div
         ref={fullScreenContainerRef}
         style={{
-          background: 'linear-gradient(135deg, #181c20 0%, #232526 100%)',
+          background: '#1a1a1a',
           borderRadius: 16,
           width: '100vw',
           height: '100vh',
@@ -332,12 +352,20 @@ export default function VideoChat({ socket, interviewId, userId }) {
           top: 0,
           left: 0,
           zIndex: 3000,
-          border: '4px solid #61dafb',
+          border: '4px solid rgba(255, 255, 255, 0.2)',
           display: isBrowserFullScreen ? 'flex' : 'none',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'flex-start',
           overflow: 'hidden',
+          // Responsive design improvements
+          '@media (max-width: 768px)': {
+            borderRadius: 0,
+            border: 'none',
+          },
+          '@media (max-width: 480px)': {
+            padding: '0.5rem',
+          }
         }}
       >
         {isBrowserFullScreen && (
@@ -371,10 +399,10 @@ export default function VideoChat({ socket, interviewId, userId }) {
               }
               // If only one participant, make video fullscreen above controls
               const isSolo = allStreams.length === 1;
-              // Calculate main video width based on chat visibility
+              // Calculate main video width based on chat visibility and screen size
               const mainVideoWidth = isSolo
-                ? (showChat ? 'calc(100vw - 340px)' : '100vw')
-                : (showChat ? 'calc(80vw - 170px)' : '80vw');
+                ? (showChat ? 'calc(100vw - clamp(280px, 25vw, 340px))' : '100vw')
+                : (showChat ? 'calc(80vw - clamp(150px, 15vw, 170px))' : '80vw');
               return focusStream ? (
                 <div style={{
                   width: '100%',
@@ -389,28 +417,42 @@ export default function VideoChat({ socket, interviewId, userId }) {
                     position: 'relative',
                     width: mainVideoWidth,
                     height: isSolo ? '100%' : undefined,
-                    maxWidth: isSolo ? mainVideoWidth : 900,
+                    maxWidth: isSolo ? mainVideoWidth : 'clamp(600px, 80vw, 900px)',
                     aspectRatio: '16/9',
                     background: '#181c20',
-                    borderRadius: isSolo ? 0 : 18,
+                    borderRadius: isSolo ? 0 : 'clamp(12px, 2vw, 18px)',
                     boxShadow: isSolo ? 'none' : '0 4px 32px rgba(0,0,0,0.6)',
                     overflow: 'hidden',
-                    border: isSolo ? 'none' : '4px solid #61dafb',
+                    border: isSolo ? 'none' : 'clamp(2px, 0.5vw, 4px) solid #61dafb',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     animation: isSolo ? undefined : 'focus-glow 1.5s infinite alternate',
                     transition: 'width 0.3s cubic-bezier(.4,2,.6,1)',
+                    // Mobile responsive improvements
+                    '@media (max-width: 768px)': {
+                      maxWidth: '95vw',
+                      borderRadius: isSolo ? 0 : 12,
+                    },
+                    '@media (max-width: 480px)': {
+                      maxWidth: '98vw',
+                      borderRadius: isSolo ? 0 : 8,
+                    }
                   }}>
                     <style>{`@keyframes focus-glow { 0% { box-shadow: 0 0 0 0 #61dafb; } 100% { box-shadow: 0 0 32px 8px #61dafb55; } }`}</style>
                     <video
-                      ref={focusStream.id === 'local' ? localVideoRef : undefined}
+                      ref={fullScreenVideoRef}
                       autoPlay
                       muted={focusStream.id === 'local'}
                       playsInline
                       style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#222', border: 'none' }}
-                      srcObject={focusStream.stream}
-                      onLoadedMetadata={e => e.target.play()}
+                      srcObject={focusStream.stream || pipStream || localStream}
+                      onLoadedMetadata={e => {
+                        e.target.play();
+                      }}
+                      onError={(e) => {
+                        // Silent error handling for professional behavior
+                      }}
                     />
                     {/* Emoji overlay */}
                     {emojiOverlays[focusStream.userId] && (
@@ -433,7 +475,24 @@ export default function VideoChat({ socket, interviewId, userId }) {
             })()}
             {/* Thumbnails Row */}
             {allStreams.length > 1 && (
-              <div style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: 18, marginBottom: 18, overflowX: 'auto', padding: '0 2vw' }}>
+              <div style={{ 
+                width: '100%', 
+                display: 'flex', 
+                justifyContent: 'center', 
+                gap: 'clamp(12px, 2vw, 18px)', 
+                marginBottom: 'clamp(12px, 2vw, 18px)', 
+                overflowX: 'auto', 
+                padding: '0 clamp(1rem, 3vw, 2vw)',
+                // Mobile responsive improvements
+                '@media (max-width: 768px)': {
+                  gap: '12px',
+                  padding: '0 1rem',
+                },
+                '@media (max-width: 480px)': {
+                  gap: '8px',
+                  padding: '0 0.5rem',
+                }
+              }}>
                 {allStreams.filter(s => {
                   // Don't show the focused stream as a thumbnail
                   let screenSharerId = null;
@@ -445,7 +504,32 @@ export default function VideoChat({ socket, interviewId, userId }) {
                   let focusId = pinnedId || screenSharerId || (allStreams[0] && allStreams[0].id);
                   return s.id !== focusId;
                 }).map(({ id, userId, stream }) => (
-                  <div key={id} style={{ position: 'relative', width: 160, height: 90, background: '#181c20', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.3)', overflow: 'hidden', border: '2px solid #444', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'box-shadow 0.2s', cursor: 'pointer' }}>
+                  <div key={id} style={{ 
+                    position: 'relative', 
+                    width: 'clamp(120px, 20vw, 160px)', 
+                    height: 'clamp(67px, 11vw, 90px)', 
+                    background: '#181c20', 
+                    borderRadius: 'clamp(6px, 1vw, 10px)', 
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)', 
+                    overflow: 'hidden', 
+                    border: 'clamp(1px, 0.3vw, 2px) solid #444', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    transition: 'box-shadow 0.2s', 
+                    cursor: 'pointer',
+                    // Mobile responsive improvements
+                    '@media (max-width: 768px)': {
+                      width: '140px',
+                      height: '79px',
+                      borderRadius: 8,
+                    },
+                    '@media (max-width: 480px)': {
+                      width: '120px',
+                      height: '68px',
+                      borderRadius: 6,
+                    }
+                  }}>
                     <video
                       ref={id === 'local' ? localVideoRef : undefined}
                       autoPlay
@@ -460,7 +544,7 @@ export default function VideoChat({ socket, interviewId, userId }) {
                     {/* Name overlay */}
                     <span style={{ position: 'absolute', left: 0, bottom: 0, width: '100%', background: 'rgba(24,28,32,0.7)', color: '#fff', fontWeight: 600, fontSize: 13, padding: '0.2rem 0.7rem', letterSpacing: 0.5, borderBottomLeftRadius: 10, borderBottomRightRadius: 10, textShadow: '0 2px 8px #000', display: 'flex', alignItems: 'center', gap: 6 }}>{userId}{id === 'local' ? ' (You)' : ''}</span>
                     {/* Pin button */}
-                    <button onClick={() => setPinnedId(id)} title="Pin" style={{ position: 'absolute', top: 8, right: 10, background: '#61dafb', color: '#232526', border: 'none', borderRadius: 8, padding: '4px 8px', fontWeight: 700, fontSize: 14, cursor: 'pointer', zIndex: 3, display: 'flex', alignItems: 'center', gap: 4 }}><FaThumbtack style={{ transform: 'rotate(-20deg)' }} /> Pin</button>
+                    <button onClick={() => setPinnedId(id)} title="Pin" style={{ position: 'absolute', top: 8, right: 10, background: '#2c3e50', color: '#ffffff', border: 'none', borderRadius: 8, padding: '4px 8px', fontWeight: 700, fontSize: 14, cursor: 'pointer', zIndex: 3, display: 'flex', alignItems: 'center', gap: 4 }}><FaThumbtack style={{ transform: 'rotate(-20deg)' }} /> Pin</button>
                   </div>
                 ))}
               </div>
@@ -476,20 +560,30 @@ export default function VideoChat({ socket, interviewId, userId }) {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                gap: 24,
-                padding: '1.2rem 2vw',
+                gap: 'clamp(12px, 2vw, 24px)',
+                padding: 'clamp(0.8rem, 2vw, 1.2rem) clamp(1rem, 3vw, 2vw)',
                 zIndex: 10,
                 boxShadow: '0 -2px 24px rgba(0,0,0,0.4)',
+                // Responsive improvements
+                flexWrap: 'wrap',
+                '@media (max-width: 768px)': {
+                  gap: '12px',
+                  padding: '1rem 1rem',
+                },
+                '@media (max-width: 480px)': {
+                  gap: '8px',
+                  padding: '0.8rem 0.5rem',
+                }
               }}
             >
-              <button onClick={handleMinimize} title="Minimize" style={{ background: '#232526', color: '#fff', border: 'none', borderRadius: 50, width: 54, height: 54, fontSize: 22, fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }}><FaTimes /></button>
-              <button onClick={() => toggleMedia('audio')} title={mediaState.audio ? 'Mute' : 'Unmute'} style={{ background: mediaState.audio ? '#232526' : '#ff9800', color: '#fff', border: 'none', borderRadius: 50, width: 54, height: 54, fontSize: 22, cursor: 'pointer' }}>{mediaState.audio ? <FaMicrophone /> : <FaMicrophoneSlash />}</button>
-              <button onClick={() => toggleMedia('video')} title={mediaState.video ? 'Camera Off' : 'Camera On'} style={{ background: mediaState.video ? '#232526' : '#ff9800', color: '#fff', border: 'none', borderRadius: 50, width: 54, height: 54, fontSize: 22, cursor: 'pointer' }}>{mediaState.video ? <FaVideo /> : <FaVideoSlash />}</button>
-              <button onClick={screenSharing ? stopScreenShare : startScreenShare} title={screenSharing ? 'Stop Share' : 'Share Screen'} style={{ background: screenSharing ? '#00C853' : '#232526', color: '#fff', border: 'none', borderRadius: 50, width: 54, height: 54, fontSize: 22, cursor: 'pointer' }}><FaDesktop /></button>
-              <button onClick={raiseHand} disabled={handRaised} title="Raise Hand" style={{ background: handRaised ? '#232526' : '#61dafb', color: '#fff', border: 'none', borderRadius: 50, width: 54, height: 54, fontSize: 22, cursor: 'pointer', opacity: handRaised ? 0.5 : 1 }}><FaRegHandPaper /></button>
-              <button onClick={() => setShowEmojiPicker(e => !e)} title="Emojis" style={{ background: '#232526', color: '#fff', border: 'none', borderRadius: 50, width: 54, height: 54, fontSize: 22, cursor: 'pointer' }}><FaSmile /></button>
-              <button onClick={() => setShowChat(c => !c)} title="Toggle Chat" style={{ background: showChat ? '#61dafb' : '#232526', color: showChat ? '#232526' : '#fff', border: 'none', borderRadius: 50, width: 54, height: 54, fontSize: 22, cursor: 'pointer' }}><FaComments /></button>
-              <button onClick={leaveCall} title="Leave" style={{ background: '#ff1744', color: '#fff', border: 'none', borderRadius: 50, width: 90, height: 54, fontSize: 18, fontWeight: 700, cursor: 'pointer', marginLeft: 16 }}>Leave</button>
+              <button onClick={handleMinimize} title="Minimize" style={{ background: '#232526', color: '#fff', border: 'none', borderRadius: 50, width: 'clamp(44px, 8vw, 54px)', height: 'clamp(44px, 8vw, 54px)', fontSize: 'clamp(16px, 3vw, 22px)', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }}><FaTimes /></button>
+              <button onClick={() => toggleMedia('audio')} title={mediaState.audio ? 'Mute' : 'Unmute'} style={{ background: mediaState.audio ? '#232526' : '#ff9800', color: '#fff', border: 'none', borderRadius: 50, width: 'clamp(44px, 8vw, 54px)', height: 'clamp(44px, 8vw, 54px)', fontSize: 'clamp(16px, 3vw, 22px)', cursor: 'pointer' }}>{mediaState.audio ? <FaMicrophone /> : <FaMicrophoneSlash />}</button>
+              <button onClick={() => toggleMedia('video')} title={mediaState.video ? 'Camera Off' : 'Camera On'} style={{ background: mediaState.video ? '#232526' : '#ff9800', color: '#fff', border: 'none', borderRadius: 50, width: 'clamp(44px, 8vw, 54px)', height: 'clamp(44px, 8vw, 54px)', fontSize: 'clamp(16px, 3vw, 22px)', cursor: 'pointer' }}>{mediaState.video ? <FaVideo /> : <FaVideoSlash />}</button>
+              <button onClick={screenSharing ? stopScreenShare : startScreenShare} title={screenSharing ? 'Stop Share' : 'Share Screen'} style={{ background: screenSharing ? '#00C853' : '#232526', color: '#fff', border: 'none', borderRadius: 50, width: 'clamp(44px, 8vw, 54px)', height: 'clamp(44px, 8vw, 54px)', fontSize: 'clamp(16px, 3vw, 22px)', cursor: 'pointer' }}><FaDesktop /></button>
+              <button onClick={raiseHand} disabled={handRaised} title="Raise Hand" style={{ background: handRaised ? '#232526' : '#61dafb', color: '#fff', border: 'none', borderRadius: 50, width: 'clamp(44px, 8vw, 54px)', height: 'clamp(44px, 8vw, 54px)', fontSize: 'clamp(16px, 3vw, 22px)', cursor: 'pointer', opacity: handRaised ? 0.5 : 1 }}><FaRegHandPaper /></button>
+              <button onClick={() => setShowEmojiPicker(e => !e)} title="Emojis" style={{ background: '#232526', color: '#fff', border: 'none', borderRadius: 50, width: 'clamp(44px, 8vw, 54px)', height: 'clamp(44px, 8vw, 54px)', fontSize: 'clamp(16px, 3vw, 22px)', cursor: 'pointer' }}><FaSmile /></button>
+              <button onClick={() => setShowChat(c => !c)} title="Toggle Chat" style={{ background: showChat ? '#61dafb' : '#232526', color: showChat ? '#232526' : '#fff', border: 'none', borderRadius: 50, width: 'clamp(44px, 8vw, 54px)', height: 'clamp(44px, 8vw, 54px)', fontSize: 'clamp(16px, 3vw, 22px)', cursor: 'pointer' }}><FaComments /></button>
+              <button onClick={leaveCall} title="Leave" style={{ background: '#ff1744', color: '#fff', border: 'none', borderRadius: 50, width: 'clamp(70px, 12vw, 90px)', height: 'clamp(44px, 8vw, 54px)', fontSize: 'clamp(14px, 2.5vw, 18px)', fontWeight: 700, cursor: 'pointer', marginLeft: 'clamp(8px, 2vw, 16px)' }}>Leave</button>
               {showEmojiPicker && (
                 <div style={{ position: 'absolute', bottom: 80, left: '50%', transform: 'translateX(-50%)', background: '#232526', borderRadius: 12, boxShadow: '0 2px 16px rgba(0,0,0,0.4)', padding: 16, display: 'flex', gap: 8, zIndex: 100 }}>
                   {emojiList.map(e => (
@@ -500,21 +594,24 @@ export default function VideoChat({ socket, interviewId, userId }) {
             </div>
             {/* Chat Panel */}
             {showChat && (
-              <div
-                style={{
-                  position: 'fixed',
-                  right: 0,
-                  top: 0,
-                  height: '100vh',
-                  width: 340,
-                  background: 'rgba(24,28,32,0.98)',
-                  borderLeft: '2px solid #232526',
-                  boxShadow: '-2px 0 24px rgba(0,0,0,0.3)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  zIndex: 20,
-                }}
-              >
+              <div style={{ 
+                position: 'fixed', 
+                top: 0, 
+                right: 0, 
+                width: 'clamp(280px, 25vw, 340px)', 
+                height: '100vh', 
+                background: 'rgba(24,28,32,0.95)', 
+                borderLeft: '2px solid #61dafb', 
+                display: 'flex', 
+                flexDirection: 'column',
+                // Mobile responsive improvements
+                '@media (max-width: 768px)': {
+                  width: '300px',
+                },
+                '@media (max-width: 480px)': {
+                  width: '280px',
+                }
+              }}>
                 {/* Participant List */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '1.2rem 1rem 0.5rem 1rem', fontWeight: 700, fontSize: 18, color: '#61dafb', borderBottom: '1px solid #232526' }}><FaUserFriends /> Participants ({participants.length}): {participants.map(p => p.userId).join(', ')}</div>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
@@ -538,7 +635,6 @@ export default function VideoChat({ socket, interviewId, userId }) {
       {/* PiP mode */}
       {!isBrowserFullScreen && (
         <>
-          <style>{pipGlowStyle}</style>
           <div style={pipStyle}>
             <video
               ref={pipVideoRef}
@@ -546,9 +642,40 @@ export default function VideoChat({ socket, interviewId, userId }) {
               autoPlay
               muted={pipLabel.endsWith('(You)')}
               playsInline
-              style={{ width: 288, height: 180, borderRadius: 10, background: '#222', border: 'none', objectFit: 'cover' }}
+              style={{ 
+                width: 'clamp(252px, 36vw, 288px)', 
+                height: 'clamp(189px, 27vw, 180px)', 
+                borderRadius: 'clamp(8px, 1.5vw, 10px)', 
+                background: '#222', 
+                border: 'none', 
+                objectFit: 'cover',
+                // Mobile responsive improvements
+                '@media (max-width: 768px)': {
+                  width: '252px',
+                  height: '189px',
+                  borderRadius: '8px',
+                },
+                '@media (max-width: 480px)': {
+                  width: '234px',
+                  height: '176px',
+                  borderRadius: '6px',
+                }
+              }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: 288, marginTop: 4 }}>
+            <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                width: 'clamp(252px, 36vw, 288px)', 
+                marginTop: 4,
+                // Mobile responsive improvements
+                '@media (max-width: 768px)': {
+                  width: '252px',
+                },
+                '@media (max-width: 480px)': {
+                  width: '234px',
+                }
+              }}>
               <span style={{ color: '#fff', fontSize: 14 }}>{pipLabel}</span>
               <button onClick={handleMaximize} title="Maximize" style={{ background: '#ff1744', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Maximize</button>
             </div>

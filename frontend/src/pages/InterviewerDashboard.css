@@ -1,26 +1,4 @@
-@keyframes gradientBorder {
-  0% {
-    border-image: linear-gradient(45deg, #1890ff, #52c41a, #1890ff) 1;
-  }
-  50% {
-    border-image: linear-gradient(45deg, #52c41a, #1890ff, #52c41a) 1;
-  }
-  100% {
-    border-image: linear-gradient(45deg, #1890ff, #52c41a, #1890ff) 1;
-  }
-}
-
-@keyframes glowPulse {
-  0% {
-    box-shadow: 0 0 5px rgba(97, 218, 251, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(97, 218, 251, 0.4);
-  }
-  100% {
-    box-shadow: 0 0 5px rgba(97, 218, 251, 0.2);
-  }
-}
+ 
 
 @keyframes fadeIn {
   from {
@@ -59,10 +37,6 @@
   font-weight: 600;
   text-align: center;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(45deg, #1890ff, #52c41a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: glowPulse 3s infinite;
 }
 
 .stats-row {
@@ -94,7 +68,7 @@
 .stats-row .ant-statistic-content {
   font-size: 2rem;
   font-weight: 600;
-  color: #61DAFB;
+  color: #ffffff;
 }
 
 .interviews-card {
@@ -140,17 +114,17 @@
 }
 
 .skill-tag {
-  background: rgba(97, 218, 251, 0.1);
-  color: #61DAFB;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
   font-size: 0.75rem;
-  border: 1px solid rgba(97, 218, 251, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
 }
 
 .skill-tag:hover {
-  background: rgba(97, 218, 251, 0.2);
+  background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
@@ -167,9 +141,9 @@
 }
 
 .status-badge.scheduled {
-  background: rgba(97, 218, 251, 0.08);
-  color: #61dafb;
-  border: 1px solid #61dafb;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid #ffffff;
 }
 
 .status-badge.in-progress {
@@ -216,7 +190,7 @@
 }
 
 .schedule-modal .ant-modal-close:hover {
-  color: #61DAFB;
+  color: #ffffff;
   transform: rotate(90deg);
 }
 
@@ -242,8 +216,8 @@
 .schedule-modal .ant-input:focus,
 .schedule-modal .ant-picker:focus,
 .schedule-modal .ant-select-selector:focus {
-  border-color: #61DAFB !important;
-  box-shadow: 0 0 0 2px rgba(97, 218, 251, 0.2) !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
 }
 
 .schedule-modal .ant-input::placeholder {
@@ -286,12 +260,43 @@
   border-bottom: none !important;
 }
 
+/* Action buttons container - no flex-wrap */
+.ant-table-tbody td > div[style*="display: flex"] {
+  display: flex !important;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap !important;
+  overflow: hidden;
+}
+
+/* Ensure action buttons don't wrap */
+.ant-table-tbody .ant-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Specific styling for action column */
+.ant-table-tbody td:last-child > div {
+  display: flex !important;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap !important;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Force no wrapping for action buttons */
+.ant-table-tbody td:last-child .ant-btn {
+  flex-shrink: 0;
+  min-width: 32px;
+  white-space: nowrap;
+}
+
 /* Button Styles */
 .ant-btn-primary {
-  background-color: transparent !important;
-  border-color: rgba(97, 218, 251, 0.5) !important;
-  color: rgba(97, 218, 251, 0.8) !important;
-  background: linear-gradient(45deg, #61DAFB, #007ACC);
+  background-color: #2c3e50 !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
   border: none;
   height: 40px;
   font-size: 1rem;
@@ -304,20 +309,320 @@
 
 .ant-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(97, 218, 251, 0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
+/* Mobile specific styles for screens < 769px */
 @media (max-width: 768px) {
   .stats-row .ant-statistic-content {
     font-size: 1.5rem;
   }
   
   .interviews-card .ant-card-body {
-    padding: 1rem;
+    padding: 0.5rem;
   }
   
   .schedule-modal .ant-modal-body {
-    padding: 1rem;
+    padding: 0.75rem;
+  }
+  
+  /* Mobile interviews list */
+  .mobile-interviews-list {
+    display: block;
+  }
+  
+  /* Mobile header adjustments */
+  .header-title {
+    text-align: center;
+    margin-bottom: 0.25rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .header-title h2 {
+    font-size: 1.4rem !important;
+    letter-spacing: 0.25 !important;
+    text-align: center;
+    margin: 0;
+  }
+  
+  .header-title .anticon {
+    font-size: 1.4rem !important;
+  }
+  
+  .header-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  
+  .header-actions .ant-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Mobile specific header actions layout */
+  @media (max-width: 768px) {
+    .header-actions {
+      flex-direction: row !important;
+      gap: 0.5rem;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+      padding: 0;
+      display: flex !important;
+    }
+    
+    .header-actions .ant-btn {
+      width: auto;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      height: 36px;
+      font-size: 0.85rem;
+      padding: 0 0.75rem;
+    }
+    
+    /* Hide refresh button on mobile - more specific selector */
+    .header-actions .refresh-button,
+    .refresh-button {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow: hidden !important;
+    }
+    
+    /* Ensure Schedule Interview and Logout are in single line */
+    .header-actions .ant-btn:not(.refresh-button) {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    /* Force horizontal layout for header actions */
+    .header-actions > * {
+      display: inline-block;
+    }
+    
+    /* Specific button styling for mobile */
+    .header-actions .ant-btn-primary {
+      flex: 1.5;
+      margin-right: 0.25rem;
+      height: 32px;
+      font-size: 0.8rem;
+      padding: 0 0.5rem;
+    }
+    
+    /* Logout button styling for all screen sizes */
+    .header-actions .ant-btn-text {
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .header-actions .ant-btn-text:hover {
+      border-color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    /* Ensure Schedule Interview button has no border for contrast */
+    .header-actions .ant-btn-primary {
+      border: none;
+      background: linear-gradient(45deg, rgba(6, 75, 95, 0.28), #007ACC);
+    }
+    
+    .header-actions .ant-btn-text {
+      flex: 1;
+      margin-left: 0.25rem;
+      height: 32px;
+      padding: 0 0.5rem;
+    }
+    
+    .header-actions .ant-btn-text:hover {
+      border-color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Reduce header title size and spacing */
+    .header-title h2 {
+      font-size: 1.2rem !important;
+      margin: 0;
+    }
+    
+    .header-title .anticon {
+      font-size: 1.2rem !important;
+    }
+    
+    .header-title {
+      margin-bottom: 0.125rem;
+    }
+    
+    /* Override Ant Design Space component for mobile */
+    .header-actions.ant-space-horizontal {
+      flex-direction: row !important;
+    }
+    
+    .header-actions .ant-space-item {
+      display: flex !important;
+      flex: 1;
+    }
+    
+    .header-actions .ant-space-item:has(.refresh-button) {
+      display: none !important;
+    }
+  }
+  
+  /* Ensure search filter container is responsive */
+  @media (min-width: 769px) {
+    .search-filter-container {
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      align-items: center;
+    }
+    
+    .search-filter-container .ant-input-search {
+      width: auto;
+    }
+    
+    .search-filter-container .ant-select {
+      width: 170px;
+    }
+  }
+  
+  /* Hide table on mobile */
+  .ant-table {
+    display: none !important;
+  }
+  
+  /* Mobile modal adjustments */
+  .ant-modal {
+    margin: 0.5rem;
+    max-width: calc(100vw - 1rem);
+  }
+  
+  .ant-modal-content {
+    border-radius: 12px;
+  }
+  
+  /* Mobile button adjustments */
+  .ant-btn {
+    height: 36px;
+    font-size: 0.85rem;
+  }
+  
+  /* Mobile form adjustments */
+  .ant-form-item {
+    margin-bottom: 0.75rem;
+  }
+  
+  .ant-form-item-label > label {
+    font-size: 0.85rem;
+  }
+  
+  /* Mobile status badge adjustments */
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 1px 8px;
+  }
+  
+  /* Mobile position tag adjustments */
+  .position-tag {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+  }
+  
+  /* Mobile modal specific styles */
+  .schedule-modal,
+  .feedback-modal {
+    margin: 0.25rem;
+    max-width: calc(100vw - 0.5rem);
+  }
+  
+  .schedule-modal .ant-modal-content,
+  .feedback-modal .ant-modal-content {
+    border-radius: 8px;
+  }
+  
+  .schedule-modal .ant-modal-body,
+  .feedback-modal .ant-modal-body {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .schedule-modal .ant-form-item,
+  .feedback-modal .ant-form-item {
+    margin-bottom: 0.5rem;
+  }
+  
+  .schedule-modal .ant-input,
+  .schedule-modal .ant-select,
+  .schedule-modal .ant-picker,
+  .feedback-modal .ant-input,
+  .feedback-modal .ant-input-textarea {
+    height: 36px;
+    font-size: 0.85rem;
+  }
+  
+  .schedule-modal .ant-btn,
+  .feedback-modal .ant-btn {
+    height: 40px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  
+  /* Mobile table action buttons */
+  .ant-table-tbody .ant-btn {
+    min-width: 24px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+  
+  /* Mobile search and filter improvements */
+  .ant-input-search .ant-input {
+    height: 36px;
+    font-size: 0.85rem;
+  }
+  
+  .ant-select-selector {
+    height: 36px !important;
+    line-height: 34px !important;
+  }
+  
+  .ant-select-selection-item {
+    font-size: 0.85rem;
+  }
+  
+  /* Reduce overall spacing */
+  .interviews-card {
+    margin-bottom: 1rem;
+  }
+  
+  .interviews-card .ant-card-head {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .interviews-card .ant-card-body {
+    padding: 0.5rem;
+  }
+  
+  /* Mobile list spacing */
+  .mobile-interviews-list {
+    margin-top: 0.5rem;
+  }
+}
+
+/* Ensure mobile interviews list is hidden on larger screens */
+@media (min-width: 769px) {
+  .mobile-interviews-list {
+    display: none !important;
   }
 }
 
@@ -398,13 +703,13 @@
 
 .dark-select-dropdown .ant-select-item {
   background: #232b3e !important;
-  color: #61dafb !important;
+  color: #ffffff !important;
   border-radius: 0 !important;
 }
 
 .dark-select-dropdown .ant-select-item-option-selected {
   background: #181f2a !important;
-  color: #61dafb !important;
+  color: #ffffff !important;
 }
 
 .dark-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
@@ -436,7 +741,7 @@
 }
 
 .status-filter-modern .ant-select-arrow {
-  color: #61dafb !important;
+  color: #ffffff !important;
 }
 
 .status-filter-modern .ant-select-selector:focus,
@@ -447,19 +752,19 @@
 /* Dropdown menu for filter */
 .dark-select-dropdown .ant-select-item {
   background-color: #181F2A;
-  color: #61dafb;
+  color: #ffffff;
   font-weight: 500;
 }
 .dark-select-dropdown .ant-select-item-option-selected,
-.dark-select-dropdown .ant-select-item-option-active {
-  background-color: rgba(97, 218, 251, 0.18) !important;
+.dark-select-dropdown .ant-select-dropdown .ant-select-item-option-active {
+  background-color: rgba(255, 255, 255, 0.18) !important;
   color: #fff !important;
 }
 
 /* Modal body background */
 .schedule-modal .ant-modal-content,
 .feedback-modal .ant-modal-content {
-  background: linear-gradient(135deg, #181F2A 0%, #232B3E 100%) !important;
+  background: #1a1a1a !important;
   color: #fff !important;
   border-radius: 16px;
 }
@@ -521,7 +826,7 @@
   color: #fff !important;
 }
 .feedback-modal .ant-modal-content {
-  background: linear-gradient(135deg, #1e2a38 0%, #283e56 100%) !important;
+  background: #1a1a1a !important;
   color: #fff !important;
   border-radius: 16px !important;
 }
@@ -530,4 +835,309 @@
   border: none !important;
   color: #ffd700 !important;
   box-shadow: none !important;
+} 
+
+/* Logout confirmation modal */
+.logout-confirm-modal .ant-modal-content {
+  background: #1a1a1a !important;
+  color: #fff !important;
+  border-radius: 16px;
+}
+
+.logout-confirm-modal .ant-modal-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+}
+
+.logout-confirm-modal .ant-modal-title {
+  color: #ff4d4f !important;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+}
+
+.logout-confirm-modal .ant-modal-title .anticon {
+  color: #ff4d4f !important;
+}
+
+/* Ensure the warning icon is red */
+.logout-confirm-modal .ant-modal-confirm-title .anticon,
+.logout-confirm-modal .ant-modal-confirm-title {
+  color: #ff4d4f !important;
+}
+
+.logout-confirm-modal .ant-modal-confirm-title {
+  color: #ff4d4f !important;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Target the actual confirmation modal classes */
+.ant-modal-confirm .ant-modal-confirm-title {
+  color: #ff4d4f !important;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.ant-modal-confirm .ant-modal-confirm-title .anticon {
+  color: #ff4d4f !important;
+}
+
+/* Override any default styles */
+.ant-modal-confirm-title,
+.ant-modal-confirm-title .anticon {
+  color: #ff4d4f !important;
+}
+
+/* Force red color with higher specificity */
+body .ant-modal-confirm .ant-modal-confirm-title,
+body .ant-modal-confirm .ant-modal-confirm-title .anticon {
+  color: #ff4d4f !important;
+}
+
+.logout-confirm-modal .ant-modal-body {
+  color: #fff !important;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.logout-confirm-modal .ant-modal-body .ant-modal-confirm-content {
+  color: #fff !important;
+}
+
+.logout-confirm-modal .ant-modal-confirm-content {
+  color: #fff !important;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Ensure all text in the modal body is white */
+.logout-confirm-modal .ant-modal-body,
+.logout-confirm-modal .ant-modal-body *,
+.logout-confirm-modal .ant-modal-confirm-content,
+.logout-confirm-modal .ant-modal-confirm-content * {
+  color: #fff !important;
+}
+
+/* Specific styling for the confirmation message */
+.logout-confirm-modal .ant-modal-confirm-content p,
+.logout-confirm-modal .ant-modal-confirm-content div {
+  color: #fff !important;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.logout-confirm-modal .ant-modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.logout-confirm-modal .ant-btn {
+  height: 44px;
+  font-weight: 600;
+  border-radius: 8px;
+  min-width: 100px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.logout-confirm-modal .ant-btn-primary {
+  background: #2c3e50;
+  border: none;
+  color: #fff;
+}
+
+.logout-confirm-modal .ant-btn-default {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.logout-confirm-modal .ant-btn-default:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Mobile logout modal adjustments */
+@media (max-width: 768px) {
+  .logout-confirm-modal .ant-modal {
+    margin: 0.5rem;
+    max-width: calc(100vw - 1rem);
+  }
+  
+  .logout-confirm-modal .ant-modal-content {
+    border-radius: 12px;
+  }
+  
+  .logout-confirm-modal .ant-modal-header {
+    padding: 1rem 1rem 0.75rem 1rem;
+  }
+  
+  .logout-confirm-modal .ant-modal-body {
+    padding: 1rem;
+    font-size: 0.95rem;
+  }
+  
+  .logout-confirm-modal .ant-modal-footer {
+    padding: 0.75rem 1rem 1rem 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .logout-confirm-modal .ant-btn {
+    height: 48px;
+    font-size: 1rem;
+    width: 100%;
+  }
+  
+  .logout-confirm-modal .ant-modal-title {
+    font-size: 1.1rem;
+  }
+} 
+
+/* Mobile card extra controls */
+.ant-card-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.ant-card-extra .ant-input-search {
+  width: 100%;
+}
+
+.ant-card-extra .ant-select {
+  width: 100%;
+}
+
+/* Mobile search filter container */
+.search-filter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.search-filter-container .ant-input-search {
+  width: 100%;
+}
+
+.search-filter-container .ant-select {
+  width: 100%;
+}
+
+/* Filters row container for horizontal layout */
+.filters-row {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+}
+
+.filters-row .ant-select {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Mobile overrides for row direction where needed */
+@media (max-width: 768px) {
+  .ant-card-extra {
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .ant-card-extra .ant-input-search {
+    width: auto;
+    flex: 1;
+  }
+  
+  .ant-card-extra .ant-select {
+    width: auto;
+    min-width: 120px;
+  }
+  
+  /* Mobile status filters in single horizontal line */
+  .search-filter-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .search-filter-container .ant-input-search {
+    width: 100%;
+  }
+  
+  /* Filters row for mobile - single horizontal unit */
+  .filters-row {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .filters-row .ant-select {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+  }
+  
+  /* Ensure both filters are in the same row */
+  .filters-row .ant-select:first-child {
+    margin-right: 0.25rem;
+  }
+  
+  .filters-row .ant-select:last-child {
+    margin-left: 0.25rem;
+  }
+} 
+
+/* Dashboard title centering for all screen sizes */
+.header-title {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.header-title h2 {
+  text-align: center;
+  margin: 0;
+}
+
+/* Mobile header adjustments */
+@media (max-width: 768px) {
+  .header-title {
+    text-align: center;
+    margin-bottom: 0.25rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .header-title h2 {
+    font-size: 1.2rem !important;
+    letter-spacing: 0.25 !important;
+    text-align: center;
+    margin: 0;
+  }
+  
+  .header-title .anticon {
+    font-size: 1.2rem !important;
+  }
 } 

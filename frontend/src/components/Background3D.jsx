@@ -114,30 +114,30 @@ function InterviewTimer({ position, color }) {
 
 export default function Background3D() {
   const codeBlocks = useMemo(() => [
-    { position: [-4, 0, -4], rotation: [0, 0, 0], color: '#61DAFB', size: 1.2 }, // React blue
-    { position: [4, 0, -4], rotation: [0, 0, 0], color: '#F7DF1E', size: 0.8 }, // JavaScript yellow
-    { position: [0, 0, -6], rotation: [0, 0, 0], color: '#007ACC', size: 1 }, // TypeScript blue
-    { position: [-6, 0, 0], rotation: [0, 0, 0], color: '#E34F26', size: 1.1 }, // HTML orange
-    { position: [6, 0, 0], rotation: [0, 0, 0], color: '#264DE4', size: 0.9 }, // CSS blue
+    { position: [-4, 0, -4], rotation: [0, 0, 0], color: '#ffffff', size: 1.2 }, // White
+    { position: [4, 0, -4], rotation: [0, 0, 0], color: '#cccccc', size: 0.8 }, // Light gray
+    { position: [0, 0, -6], rotation: [0, 0, 0], color: '#999999', size: 1 }, // Gray
+    { position: [-6, 0, 0], rotation: [0, 0, 0], color: '#666666', size: 1.1 }, // Dark gray
+    { position: [6, 0, 0], rotation: [0, 0, 0], color: '#444444', size: 0.9 }, // Darker gray
   ], [])
 
   const floatingTexts = useMemo(() => [
-    { position: [-3, 2, -3], text: "Code", color: "#61DAFB" },
-    { position: [3, -2, -3], text: "Debug", color: "#F7DF1E" },
-    { position: [0, 3, -5], text: "Interview", color: "#007ACC" },
-    { position: [-5, -3, 0], text: "Learn", color: "#E34F26" },
-    { position: [5, 3, 0], text: "Grow", color: "#264DE4" },
+    { position: [-3, 2, -3], text: "Code", color: "#ffffff" },
+    { position: [3, -2, -3], text: "Debug", color: "#cccccc" },
+    { position: [0, 3, -5], text: "Interview", color: "#999999" },
+    { position: [-5, -3, 0], text: "Learn", color: "#666666" },
+    { position: [5, 3, 0], text: "Grow", color: "#444444" },
   ], [])
 
   const interviewRings = useMemo(() => [
-    { position: [-2, 1, -2], color: "#61DAFB" },
-    { position: [2, -1, -2], color: "#F7DF1E" },
-    { position: [0, 2, -4], color: "#007ACC" },
+    { position: [-2, 1, -2], color: "#ffffff" },
+    { position: [2, -1, -2], color: "#cccccc" },
+    { position: [0, 2, -4], color: "#999999" },
   ], [])
 
   const timers = useMemo(() => [
-    { position: [-4, 2, -3], color: "#61DAFB" },
-    { position: [4, -2, -3], color: "#F7DF1E" },
+    { position: [-4, 2, -3], color: "#ffffff" },
+    { position: [4, -2, -3], color: "#cccccc" },
   ], [])
 
   return (
@@ -155,8 +155,8 @@ export default function Background3D() {
       />
 
       {/* Point lights for better illumination */}
-      <pointLight position={[-5, 5, 0]} intensity={0.5} color="#61DAFB" />
-      <pointLight position={[5, -5, 0]} intensity={0.5} color="#007ACC" />
+      <pointLight position={[-5, 5, 0]} intensity={0.5} color="#ffffff" />
+      <pointLight position={[5, -5, 0]} intensity={0.5} color="#cccccc" />
 
       {/* Code blocks */}
       {codeBlocks.map((block, index) => (

@@ -17,7 +17,7 @@ const Toolbar = styled.div`
 const ToolButton = styled.button`
   background: none;
   border: none;
-  color: #61dafb;
+  color: #ffffff;
   font-size: 1.35rem;
   cursor: pointer;
   padding: 0.35rem 0.6rem;
@@ -25,9 +25,9 @@ const ToolButton = styled.button`
   position: relative;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
   &:hover, &.active {
-    background: linear-gradient(90deg, #232526 60%, rgba(0, 122, 204, 0.2));
+    background: #2c3e50;
     color: #fff;
-    box-shadow: 0 2px 8px rgba(97, 218, 251, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
   &:disabled {
     opacity: 0.5;
@@ -54,7 +54,7 @@ const BrushSizeContainer = styled.div`
 `;
 
 const BrushSizeLabel = styled.span`
-  color: #61dafb;
+  color: #ffffff;
   font-size: 0.9rem;
 `;
 
@@ -63,14 +63,14 @@ const BrushSizeInput = styled.input`
   height: 30px;
   border: none;
   border-radius: 7px;
-  background: rgba(97, 218, 251, 0.1);
-  color: #61dafb;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   padding: 0 0.5rem;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 122, 204, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   &:focus {
     outline: none;
-    box-shadow: 0 2px 12px rgba(97, 218, 251, 0.4);
+    box-shadow: 0 2px 12px rgba(255, 255, 255, 0.4);
   }
 `;
 

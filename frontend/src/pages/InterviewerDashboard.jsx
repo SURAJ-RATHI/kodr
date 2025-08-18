@@ -28,35 +28,32 @@ const { Option } = Select;
 
 const DashboardContainer = styled(motion.div)`
   min-height: 100vh;
-  padding: 2rem;
+  padding: clamp(1rem, 4vw, 2rem);
   display: flex;
   flex-direction: column;
   align-items: center;
   max-width: 1400px;
   margin: 0 auto;
-  background: linear-gradient(135deg, rgba(26, 26, 26, 0.98) 0%, rgba(35, 37, 38, 0.98) 100%);
+  background: #1a1a1a;
   position: relative;
   overflow: hidden;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('/subtle-pattern.svg') repeat;
-    opacity: 0.05;
-    z-index: 0;
-    pointer-events: none;
-  }
-
   @media (max-width: 900px) {
-    padding: 1.5rem 1rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
   }
 
   @media (max-width: 600px) {
-    padding: 1rem 0.5rem;
+    padding: clamp(0.75rem, 2vw, 1rem);
+  }
+  
+  @media (max-width: 480px) {
+    padding: clamp(0.5rem, 1.5vw, 0.75rem);
+  }
+
+  /* Mobile specific styles for screens < 769px */
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+    max-width: 100%;
   }
 
   * { /* Apply to all children */
@@ -66,14 +63,25 @@ const DashboardContainer = styled(motion.div)`
 `;
 
 const PositionTag = styled.div`
-  background: rgba(97, 218, 251, 0.1);
-  color: #61dafb;
-  padding: 0.3rem 0.8rem;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: clamp(0.25rem, 1vw, 0.3rem) clamp(0.6rem, 2vw, 0.8rem);
+  border-radius: clamp(6px, 1.5vw, 8px);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 2.2vw, 0.9rem);
   display: inline-block;
-  border: 1px solid rgba(97, 218, 251, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+  }
 `;
 
 const Header = styled(motion.div)`
@@ -81,30 +89,76 @@ const Header = styled(motion.div)`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding: 1rem 2rem;
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  padding: clamp(0.75rem, 2.5vw, 1rem) clamp(1.5rem, 4vw, 2rem);
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border-radius: clamp(12px, 3vw, 16px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.375rem 0.5rem;
+    margin-bottom: 0.5rem;
+    gap: 0.375rem;
+  }
+
+  /* Mobile specific styles for screens < 769px */
+  @media (max-width: 768px) {
+    .header-title {
+      text-align: center;
+      margin-bottom: 0.125rem;
+    }
+    
+    .header-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    
+    .header-actions .ant-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 `;
 
 const Title = styled(motion.h1)`
-  font-size: 3.5rem;
+  font-size: clamp(2rem, 6vw, 3.5rem);
   font-weight: 800;
-  margin-bottom: 2rem;
-  background: linear-gradient(45deg, #61DAFB, #007ACC);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 30px rgba(97, 218, 251, 0.5);
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  color: #ffffff;
   text-align: center;
 
   @media (max-width: 900px) {
-    font-size: 2.5rem;
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    margin-bottom: clamp(1.25rem, 3vw, 1.75rem);
   }
+  
   @media (max-width: 600px) {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 4.5vw, 2rem);
+    margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+  }
+  
+  @media (max-width: 480px) {
+    font-size: clamp(1.25rem, 4vw, 1.75rem);
+    margin-bottom: 0.75rem;
+  }
+
+  /* Mobile specific styles for screens < 769px */
+  @media (max-width: 768px) {
+    font-size: clamp(1.5rem, 5vw, 1.75rem);
+    margin-bottom: 0.5rem;
   }
 `;
 
@@ -112,7 +166,7 @@ const StyledCard = styled(motion(Card))`
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
+  border-radius: clamp(12px, 3vw, 16px);
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   overflow: hidden; /* Ensures pseudo-element is clipped */
@@ -125,39 +179,113 @@ const StyledCard = styled(motion(Card))`
   .ant-card-head {
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     color: #ffffff;
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
     font-weight: 600;
   }
 
   .ant-card-body {
     color: #ffffff;
+    padding: clamp(1rem, 3vw, 1.5rem);
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    border-radius: 12px;
+    
+    .ant-card-head {
+      font-size: 1rem;
+      padding: 0.5rem 0.75rem;
+    }
+    
+    .ant-card-body {
+      padding: 0.75rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    border-radius: 8px;
+    
+    .ant-card-head {
+      font-size: 0.9rem;
+      padding: 0.375rem 0.5rem;
+    }
+    
+    .ant-card-body {
+      padding: 0.5rem;
+    }
+  }
+
+  /* Mobile specific styles for screens < 769px */
+  @media (max-width: 768px) {
+    .ant-card-extra {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    
+    .ant-card-extra .ant-input-search {
+      width: 100%;
+    }
+    
+    .ant-card-extra .ant-select {
+      width: 100%;
+    }
+    
+    /* Hide table on mobile and show mobile-friendly layout */
+    .ant-table {
+      display: none;
+    }
+    
+    .mobile-interviews-list {
+      display: block;
+    }
+  }
+  
+  @media (min-width: 769px) {
+    .mobile-interviews-list {
+      display: none;
+    }
   }
 `;
 
 const StyledButton = styled(Button)`
-  background: linear-gradient(45deg,rgba(6, 75, 95, 0.28), #007ACC);
+  background: #2c3e50;
   border: none;
-  height: 45px;
-  font-size: 1.1rem;
-  border-radius: 8px;
+  height: clamp(40px, 8vw, 45px);
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  border-radius: clamp(6px, 1.5vw, 8px);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: clamp(6px, 1.5vw, 8px);
   color: white;
   transition: all 0.3s ease;
   font-weight: 600;
 
   &:hover {
-    background: linear-gradient(45deg, #007ACC, #61DAFB);
+    background: #34495e;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(97, 218, 251, 0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    height: 40px;
+    font-size: 0.9rem;
+    gap: 6px;
+  }
+  
+  @media (max-width: 480px) {
+    height: 36px;
+    font-size: 0.8rem;
+    gap: 4px;
   }
 `;
 
 const NotificationBadge = styled(Badge)`
   .ant-badge-count {
-    background: #61dafb;
-    box-shadow: 0 0 12px rgba(97, 218, 251, 0.5);
+    background: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
     color: #000;
   }
 `;
@@ -192,6 +320,145 @@ const CustomEmpty = () => (
   >
     <FrownOutlined style={{ fontSize: '3rem', marginBottom: '1rem' }} />
     <p>No interviews found.</p>
+  </motion.div>
+);
+
+const MobileInterviewCard = ({ interview, onEdit, onStart, onShare, onDelete, onFeedback, canStart }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+    style={{
+      background: 'rgba(255, 255, 255, 0.08)',
+      border: '1px solid rgba(255, 255, 255, 0.15)',
+      borderRadius: '12px',
+      padding: '0.75rem',
+      marginBottom: '0.75rem',
+      backdropFilter: 'blur(10px)',
+    }}
+  >
+    <div style={{ marginBottom: '0.5rem' }}>
+      <div style={{ 
+        fontSize: '1rem', 
+        fontWeight: '600', 
+        color: '#fff', 
+        marginBottom: '0.125rem' 
+      }}>
+        {interview.candidateName}
+      </div>
+      <div style={{ 
+        fontSize: '0.8rem', 
+        color: 'rgba(255, 255, 255, 0.65)' 
+      }}>
+        {interview.candidateEmail}
+      </div>
+    </div>
+    
+    <div style={{ marginBottom: '0.5rem' }}>
+      <PositionTag>{Array.isArray(interview.position) ? interview.position.join(', ') : interview.position}</PositionTag>
+    </div>
+    
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center',
+      marginBottom: '0.5rem',
+      fontSize: '0.8rem',
+      color: 'rgba(255, 255, 255, 0.8)'
+    }}>
+      <span>{interview.date}</span>
+      <span>{interview.time}</span>
+    </div>
+    
+    <div style={{ marginBottom: '0.75rem' }}>
+      <span className={`status-badge ${interview.status.toLowerCase()}`}>
+        {interview.status}
+      </span>
+    </div>
+    
+    <div style={{ 
+      display: 'grid', 
+      gridTemplateColumns: 'repeat(2, 1fr)', 
+      gap: '0.375rem' 
+    }}>
+      <StyledButton
+        type="default"
+        size="small"
+        icon={<EditOutlined />}
+        onClick={() => onEdit(interview)}
+        style={{ 
+          background: 'transparent', 
+          color: '#ffffff', 
+          border: '1px solid rgba(255, 255, 255, 0.3)' 
+        }}
+      >
+        Edit
+      </StyledButton>
+      
+      {canStart ? (
+        <StyledButton
+          type="primary"
+          size="small"
+          onClick={() => onStart(interview)}
+        >
+          Start
+        </StyledButton>
+      ) : (
+        <StyledButton
+          type="primary"
+          size="small"
+          onClick={() => window.open(`/interview/${interview.id || interview._id}?fromDashboard=true`, '_blank')}
+        >
+          {interview.status === 'in-progress' ? 'Join' : 'View'}
+        </StyledButton>
+      )}
+      
+      <StyledButton
+        type="default"
+        size="small"
+        icon={<ShareAltOutlined />}
+        onClick={() => onShare(interview)}
+        style={{ 
+          background: 'rgba(255, 255, 255, 0.1)', 
+          border: '1px solid rgba(255, 255, 255, 0.2)', 
+          color: '#fff' 
+        }}
+      >
+        Share
+      </StyledButton>
+      
+      <StyledButton
+        type="default"
+        size="small"
+        danger
+        icon={<DeleteOutlined />}
+        onClick={() => onDelete(interview)}
+        style={{ 
+          background: 'transparent', 
+          color: '#ff4d4f', 
+          border: '1px solid rgba(255, 77, 79, 0.3)' 
+        }}
+      >
+        Delete
+      </StyledButton>
+    </div>
+    
+    <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
+      <StyledButton
+        type="default"
+        size="small"
+        icon={<StarFilled />}
+        onClick={() => onFeedback(interview)}
+        style={{ 
+          background: '#2c3e50', 
+          color: '#ffffff', 
+          border: 'none',
+          width: '100%'
+        }}
+      >
+        Feedback
+      </StyledButton>
+    </div>
   </motion.div>
 );
 
@@ -254,7 +521,6 @@ const InterviewerDashboard = () => {
           const errorData = JSON.parse(errorText);
           errorDetails = errorData.message || JSON.stringify(errorData);
         } catch {}
-        console.error('Failed to fetch interviews:', response.status, errorDetails);
         throw new Error(errorDetails);
       }
 
@@ -270,7 +536,6 @@ const InterviewerDashboard = () => {
       }));
       setUpcomingInterviews(formattedData);
     } catch (error) {
-      console.error('Failed to fetch interviews:', error);
       message.error(`Failed to fetch interviews: ${error.message}`);
     }
   };
@@ -302,14 +567,12 @@ const InterviewerDashboard = () => {
           const errorData = JSON.parse(errorText);
           errorDetails = errorData.message || JSON.stringify(errorData);
         } catch {}
-        console.error('Failed to fetch statistics:', response.status, errorDetails);
         throw new Error(errorDetails);
       }
 
       const data = await response.json();
       setStats(data);
     } catch (error) {
-      console.error('Failed to fetch statistics:', error);
       message.error(`Failed to fetch statistics: ${error.message}`);
     }
   };
@@ -363,7 +626,6 @@ const InterviewerDashboard = () => {
       form.resetFields();
       fetchInterviews();
     } catch (error) {
-      console.error('Scheduling interview error:', error);
       message.error(error.message || 'Failed to schedule interview');
     }
   };
@@ -415,7 +677,6 @@ const InterviewerDashboard = () => {
         message.error('An unexpected error occurred while sharing the interview.');
       }
     } catch (error) {
-      console.error('Error sharing interview:', error);
       message.error('An unexpected error occurred while sharing the interview.');
     }
   };
@@ -452,7 +713,6 @@ const InterviewerDashboard = () => {
           message.success(result.message || 'Interview deleted successfully');
           fetchInterviews();
         } catch (error) {
-          console.error('Delete interview error:', error);
           message.error(error.message || 'Failed to delete interview');
         }
       },
@@ -524,7 +784,6 @@ const InterviewerDashboard = () => {
       form.resetFields();
       fetchInterviews();
     } catch (error) {
-      console.error('Updating interview error:', error);
       message.error(error.message || 'Failed to update interview');
     }
   };
@@ -597,11 +856,11 @@ const InterviewerDashboard = () => {
       title: 'Action',
       key: 'action',
       render: (_, record) => (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <StyledButton
             type="default"
             size="small"
-            style={{ background: 'transparent', color: '#61dafb', border: 'none', minWidth: 32, padding: 0 }}
+            style={{ background: 'transparent', color: '#ffffff', border: 'none', minWidth: 32, padding: 0 }}
             icon={<EditOutlined style={{ fontSize: 18 }} />}
             onClick={() => handleEditInterview(record)}
           />
@@ -640,7 +899,7 @@ const InterviewerDashboard = () => {
           <StyledButton
             type="default"
             size="small"
-            style={{ background: 'linear-gradient(45deg, #232B3E, #181F2A)', color: '#FFD700', border: 'none', minWidth: 32, padding: 0 }}
+            style={{ background: '#2c3e50', color: '#ffffff', border: 'none', minWidth: 32, padding: 0 }}
             onClick={() => openFeedbackModal(record)}
             icon={<StarFilled />}
           />
@@ -691,23 +950,57 @@ const InterviewerDashboard = () => {
       animate="visible"
     >
       <Header variants={itemVariants}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-          <DashboardOutlined style={{ fontSize: '1.8rem', color: '#61dafb' }} />
-          <h2 style={{ margin: 0, color: '#fff', fontSize: '1.8rem', fontWeight: 800, letterSpacing: 0.5 }}>Interviewer Dashboard</h2>
+        <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+          <DashboardOutlined style={{ fontSize: '1.8rem', color: '#ffffff' }} />
+          <h2 style={{ 
+            margin: 0, 
+            color: '#fff', 
+            fontSize: '1.8rem', 
+            fontWeight: 800, 
+            letterSpacing: 0.5,
+            '@media (max-width: 768px)': {
+              fontSize: '1.4rem',
+              letterSpacing: 0.25
+            }
+          }}>Dashboard</h2>
         </div>
-        <Space size="large" style={{ gap: '1.2rem', alignItems: 'center' }}>
-          <Button type="primary" style={{ background: 'linear-gradient(45deg,rgba(6, 75, 95, 0.28), #007ACC)' }} icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Schedule Interview</Button>
-          <Button icon={<ReloadOutlined />} onClick={() => { fetchInterviews(); fetchStats(); }}>Refresh</Button>
-          <Tooltip title="Notifications">
-            <NotificationBadge count={5}>
-              <Button type="text" icon={<BellOutlined style={{ fontSize: '1.4rem', color: '#fff' }} />} />
-            </NotificationBadge>
-          </Tooltip>
-          <Tooltip title="Settings">
-            <Button type="text" icon={<SettingOutlined style={{ fontSize: '1.4rem', color: '#fff' }} />} />
-          </Tooltip>
+        <Space size="large" className="header-actions" style={{ gap: '1.2rem', alignItems: 'center' }}>
+          <Button type="primary" style={{ background: '#2c3e50' }} icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Schedule Interview</Button>
+          <Button className="refresh-button" icon={<ReloadOutlined />} onClick={() => { fetchInterviews(); fetchStats(); }}>Refresh</Button>
           <Tooltip title="Logout">
-            <Button type="text" icon={<LogoutOutlined style={{ fontSize: '1.4rem', color: '#fff' }} />} onClick={logout} />
+            <Button 
+              type="text" 
+              icon={<LogoutOutlined style={{ fontSize: '1.4rem', color: '#fff' }} />} 
+              onClick={() => {
+                Modal.confirm({
+                  title: <span style={{ color: '#ff4d4f', fontWeight: '600' }}>Confirm Logout</span>,
+                  content: 'Are you sure you want to logout from your account?',
+                  okText: 'Logout',
+                  cancelText: 'Cancel',
+                  onOk: () => logout(),
+                  centered: true,
+                  className: 'logout-confirm-modal',
+                  okButtonProps: {
+                    style: {
+                      background: '#2c3e50',
+                      border: 'none',
+                      color: '#ffffff',
+                      fontWeight: '600',
+                      width: '100%'
+                    }
+                  },
+                  cancelButtonProps: {
+                    style: {
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      color: '#fff',
+                      fontWeight: '600',
+                      width: '100%'
+                    }
+                  }
+                });
+              }} 
+            />
           </Tooltip>
         </Space>
       </Header>
@@ -717,38 +1010,40 @@ const InterviewerDashboard = () => {
         className="interviews-card"
         variants={itemVariants}
         extra={
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div className="search-filter-container" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <Input.Search
               placeholder="Search..."
               onSearch={value => setSearchQuery(value)}
               onChange={e => setSearchQuery(e.target.value)}
               className="dark-input"
             />
-            <Select
-              defaultValue="all"
-              onChange={value => setStatusFilter(value)}
-              style={{ width: 170 }}
-              className="status-filter-modern"
-              popupClassName="dark-select-dropdown"
-            >
-              <Option value="all">All Statuses</Option>
-              <Option value="scheduled">Scheduled</Option>
-              <Option value="in-progress">In Progress</Option>
-              <Option value="completed">Completed</Option>
-            </Select>
-            <Select
-              value={sortOption}
-              onChange={setSortOption}
-              style={{ width: 170 }}
-              className="status-filter-modern"
-              popupClassName="dark-select-dropdown"
-            >
-              <Option value="closest">Closest (Soonest)</Option>
-              <Option value="farthest">Farthest (Latest)</Option>
-              <Option value="candidateAZ">Candidate Name (A-Z)</Option>
-              <Option value="candidateZA">Candidate Name (Z-A)</Option>
-              <Option value="statusAZ">Status (A-Z)</Option>
-            </Select>
+            <div className="filters-row">
+              <Select
+                defaultValue="all"
+                onChange={value => setStatusFilter(value)}
+                style={{ width: 170 }}
+                className="status-filter-modern"
+                popupClassName="dark-select-dropdown"
+              >
+                <Option value="all">All Statuses</Option>
+                <Option value="scheduled">Scheduled</Option>
+                <Option value="in-progress">In Progress</Option>
+                <Option value="completed">Completed</Option>
+              </Select>
+              <Select
+                value={sortOption}
+                onChange={setSortOption}
+                style={{ width: 170 }}
+                className="status-filter-modern"
+                popupClassName="dark-select-dropdown"
+              >
+                <Option value="closest">Closest (Soonest)</Option>
+                <Option value="farthest">Farthest (Latest)</Option>
+                <Option value="candidateAZ">Candidate Name (A-Z)</Option>
+                <Option value="candidateZA">Candidate Name (Z-A)</Option>
+                <Option value="statusAZ">Status (A-Z)</Option>
+              </Select>
+            </div>
           </div>
         }
       >
@@ -767,6 +1062,26 @@ const InterviewerDashboard = () => {
             }}
           />
         </AnimatePresence>
+        
+        {/* Mobile-friendly interviews list */}
+        <div className="mobile-interviews-list">
+          {sortedInterviews.length === 0 ? (
+            <CustomEmpty />
+          ) : (
+            sortedInterviews.map((interview) => (
+              <MobileInterviewCard
+                key={interview.id || interview._id}
+                interview={interview}
+                onEdit={handleEditInterview}
+                onStart={handleStartInterview}
+                onShare={handleShareInterview}
+                onDelete={handleDeleteInterview}
+                onFeedback={openFeedbackModal}
+                canStart={canStartInterview(interview, user?.id)}
+              />
+            ))
+          )}
+        </div>
       </StyledCard>
 
       <Modal
@@ -776,7 +1091,7 @@ const InterviewerDashboard = () => {
         footer={null}
         className="schedule-modal"
         centered
-        styles={{ body: { background: 'linear-gradient(135deg, #181F2A 0%, #232B3E 100%)', borderRadius: 16 } }}
+        styles={{ body: { background: '#1a1a1a', borderRadius: 16 } }}
       >
         <Form
           form={form}
@@ -830,8 +1145,8 @@ const InterviewerDashboard = () => {
         footer={null}
         className="feedback-modal"
         centered
-        styles={{ body: { background: '#181F2A', borderRadius: 16, color: '#fff' } }}
-        bodyStyle={{ background: '#181F2A', color: '#fff', borderRadius: 16 }}
+        styles={{ body: { background: '#1a1a1a', borderRadius: 16, color: '#fff' } }}
+        bodyStyle={{ background: '#1a1a1a', color: '#fff', borderRadius: 16 }}
         titleStyle={{ color: '#fff' }}
       >
         <Form
@@ -861,7 +1176,7 @@ const InterviewerDashboard = () => {
         footer={null}
         className="schedule-modal"
         centered
-        styles={{ body: { background: 'linear-gradient(135deg, #181F2A 0%, #232B3E 100%)', borderRadius: 16 } }}
+        styles={{ body: { background: '#1a1a1a', borderRadius: 16 } }}
       >
         <Form
           form={form}

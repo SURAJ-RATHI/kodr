@@ -12,48 +12,75 @@ const RoleContainer = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 2rem;
+  padding: clamp(1rem, 4vw, 2rem);
   position: relative;
   overflow: hidden;
   background: #1a1a1a;
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    padding: clamp(0.75rem, 3vw, 1.5rem);
+  }
+  
+  @media (max-width: 480px) {
+    padding: clamp(0.5rem, 2vw, 1rem);
+  }
 `;
 
 const Title = styled(motion.h1)`
-  font-size: 4.5rem;
-  margin-bottom: 3rem;
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  margin-bottom: clamp(2rem, 5vw, 3rem);
   text-align: center;
   color: #ffffff;
   position: relative;
   z-index: 2;
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: clamp(1px, 0.5vw, 2px);
   text-transform: uppercase;
-  text-shadow: 0 0 20px rgba(0, 150, 255, 0.5);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 
   span {
-    background: linear-gradient(45deg, #0096ff, #00ffd5);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+    letter-spacing: 1px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    margin-bottom: clamp(1rem, 3vw, 2rem);
+    letter-spacing: 0.5px;
   }
 `;
 
 const RoleCards = styled.div`
   display: flex;
-  gap: 4rem;
-  margin-top: 2rem;
+  gap: clamp(2rem, 6vw, 4rem);
+  margin-top: clamp(1.5rem, 4vw, 2rem);
   position: relative;
   z-index: 2;
+  
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 2rem;
+    gap: clamp(1.5rem, 4vw, 2rem);
+    margin-top: clamp(1rem, 3vw, 1.5rem);
+  }
+  
+  @media (max-width: 480px) {
+    gap: 1.5rem;
+    margin-top: 1rem;
   }
 `;
 
 const RoleCard = styled(motion.div)`
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  padding: 3rem;
-  width: 380px;
+  border-radius: clamp(12px, 3vw, 20px);
+  padding: clamp(2rem, 5vw, 3rem);
+  width: clamp(280px, 60vw, 380px);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -63,59 +90,90 @@ const RoleCard = styled(motion.div)`
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(45deg, #0096ff, #00ffd5);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    z-index: -1;
-  }
-
   &:hover {
     transform: translateY(-15px);
-    border-color: #0096ff;
-    box-shadow: 0 20px 40px rgba(0, 150, 255, 0.2);
-
-    &::before {
-      opacity: 0.1;
-    }
+    border-color: #ffffff;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    width: clamp(250px, 80vw, 320px);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border-radius: 16px;
+  }
+  
+  @media (max-width: 480px) {
+    width: clamp(220px, 90vw, 280px);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border-radius: 12px;
   }
 `;
 
 const RoleIcon = styled(motion.div)`
-  font-size: 4rem;
-  margin-bottom: 2rem;
-  color: #0096ff;
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  color: #ffffff;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: clamp(0.5rem, 1.5vw, 1rem);
   position: relative;
 
   svg {
-    filter: drop-shadow(0 0 10px rgba(0, 150, 255, 0.5));
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+  }
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    font-size: clamp(2rem, 6vw, 3rem);
+    margin-bottom: clamp(1.25rem, 3vw, 1.75rem);
+    gap: 0.75rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    margin-bottom: 1.25rem;
+    gap: 0.5rem;
   }
 `;
 
 const RoleTitle = styled.h2`
-  font-size: 2.2rem;
-  margin-bottom: 1.5rem;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  margin-bottom: clamp(1rem, 3vw, 1.5rem);
   text-align: center;
   color: #ffffff;
   font-weight: 600;
-  text-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    font-size: clamp(1.25rem, 3.5vw, 1.8rem);
+    margin-bottom: clamp(0.75rem, 2.5vw, 1.25rem);
+  }
+  
+  @media (max-width: 480px) {
+    font-size: clamp(1.125rem, 3vw, 1.5rem);
+    margin-bottom: 0.75rem;
+  }
 `;
 
 const RoleDescription = styled.p`
   color: #b3b3b3;
   text-align: center;
   line-height: 1.8;
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  
+  /* Enhanced responsive design */
+  @media (max-width: 768px) {
+    font-size: clamp(0.85rem, 2.2vw, 1rem);
+    line-height: 1.6;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
 `;
 
 const AnimatedBackground = styled.div`
@@ -132,27 +190,27 @@ const Hexagon = styled(motion.div)`
   position: absolute;
   width: 100px;
   height: 115px;
-  background: rgba(0, 150, 255, 0.03);
+  background: rgba(255, 255, 255, 0.03);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  border: 1px solid rgba(0, 150, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
 const FloatingCode = styled(motion.div)`
   position: absolute;
   font-family: 'Courier New', monospace;
-  color: rgba(0, 150, 255, 0.2);
+  color: rgba(255, 255, 255, 0.2);
   font-size: 1.2rem;
   pointer-events: none;
   white-space: nowrap;
   font-weight: bold;
-  text-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 `;
 
 const GlowEffect = styled.div`
   position: absolute;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 50%, rgba(0, 150, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
   pointer-events: none;
   z-index: 1;
 `;
@@ -160,16 +218,16 @@ const GlowEffect = styled.div`
 const TechElement = styled(motion.div)`
   position: absolute;
   font-size: 1.5rem;
-  color: rgba(0, 150, 255, 0.2);
+  color: rgba(255, 255, 255, 0.2);
   pointer-events: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  background: rgba(0, 150, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   backdrop-filter: blur(5px);
-  border: 1px solid rgba(0, 150, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
 const CompilerWindow = styled(motion.div)`
@@ -178,31 +236,31 @@ const CompilerWindow = styled(motion.div)`
   background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(0, 150, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(5px);
 `;
 
 const CompilerHeader = styled.div`
-  background: rgba(0, 150, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   padding: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-bottom: 1px solid rgba(0, 150, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 `;
 
 const CompilerContent = styled.div`
   padding: 1rem;
   font-family: 'Courier New', monospace;
-  color: rgba(0, 150, 255, 0.3);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 0.8rem;
   line-height: 1.4;
 `;
 
 const InterviewBubble = styled(motion.div)`
   position: absolute;
-  background: rgba(0, 150, 255, 0.05);
-  border: 1px solid rgba(0, 150, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 1rem;
   max-width: 250px;
@@ -220,7 +278,7 @@ const codeSnippets = [
   'return new Promise();',
   'try {',
   '} catch (error) {',
-  'console.log();',
+  '// Code execution',
 ];
 
 const techElements = [
