@@ -32,6 +32,11 @@ export default function CompilerPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(!compilerId);
 
+  // Update showCreateForm when compilerId changes
+  useEffect(() => {
+    setShowCreateForm(!compilerId);
+  }, [compilerId]);
+
   // Initialize socket connection
   useEffect(() => {
     const API_URL = import.meta.env.VITE_API_URL;
