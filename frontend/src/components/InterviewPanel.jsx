@@ -356,24 +356,24 @@ const LanguageSelect = styled.select`
 `;
 
 const sampleCode = {
-  javascript: `// Write your JavaScript code here\n\nfunction add(a, b) {\n  return a + b;\n}\n\n// Example: add(5, 10) returns 15
+  javascript: `// Write your JavaScript code here\nconsole.log("Welcome to Kodr! 🚀");\nconsole.log("Start coding...");\n\nfunction add(a, b) {\n  return a + b;\n}\n\n// Example: add(5, 10) returns 15\nconsole.log("Result:", add(5, 10));
 `,
-  python: `# Write your Python code here\nprint("Hello, world!")\n\ndef subtract(a, b):\n  return a - b\n\nprint(subtract(10, 5))
+  python: `# Write your Python code here\nprint("Welcome to Kodr! 🚀")\nprint("Start coding...")\n\ndef subtract(a, b):\n  return a - b\n\nprint("Result:", subtract(10, 5))
 `,
-  cpp: `// Write your C++ code here\n#include <iostream>\n\nint main() {\n  std::cout << "Hello, world!" << std::endl;\n  return 0;\n}
+  cpp: `// Write your C++ code here\n#include <iostream>\n\nint main() {\n  std::cout << "Welcome to Kodr! 🚀" << std::endl;\n  std::cout << "Start coding..." << std::endl;\n  std::cout << "Hello, world!" << std::endl;\n  return 0;\n}
 `,
-  java: `// Write your Java code here\npublic class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello, world!");\n  }\n}
+  java: `// Write your Java code here\npublic class Main {\n  public static void main(String[] args) {\n    System.out.println("Welcome to Kodr! 🚀");\n    System.out.println("Start coding...");\n    System.out.println("Hello, world!");\n  }\n}
 `,
-  c: `// Write your C code here\n#include <stdio.h>\n\nint main() {\n  printf("Hello, world!");\n  return 0;\n}
+  c: `// Write your C code here\n#include <stdio.h>\n\nint main() {\n  printf("Welcome to Kodr! 🚀\\n");\n  printf("Start coding...\\n");\n  printf("Hello, world!");\n  return 0;\n}
 `,
   // Add more languages here
-  go: `// Write your Go code here\npackage main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Hello, world!")\n}
+  go: `// Write your Go code here\npackage main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Welcome to Kodr! 🚀")\n\tfmt.Println("Start coding...")\n\tfmt.Println("Hello, world!")\n}
 `,
-  ruby: `# Write your Ruby code here\nputs "Hello, world!"
+  ruby: `# Write your Ruby code here\nputs "Welcome to Kodr! 🚀"\nputs "Start coding..."\nputs "Hello, world!"
 `,
-  swift: `// Write your Swift code here\nimport Foundation\n\nprint("Hello, world!")
+  swift: `// Write your Swift code here\nimport Foundation\n\nprint("Welcome to Kodr! 🚀")\nprint("Start coding...")\nprint("Hello, world!")
 `,
-  kotlin: `// Write your Kotlin code here\nfun main() {\n  println("Hello, world!")\n}
+  kotlin: `// Write your Kotlin code here\nfun main() {\n  println("Welcome to Kodr! 🚀")\n  println("Start coding...")\n  println("Hello, world!")\n}
 `,
 };
 
