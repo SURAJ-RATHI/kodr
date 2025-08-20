@@ -34,7 +34,13 @@ export default function CompilerPage() {
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io('http://localhost:3000');
+    const API_URL = import.meta.env.VITE_API_URL;
+    if (!API_URL) {
+      message.error('VITE_API_URL environment variable is not set. Please check your configuration.');
+      return;
+    }
+    
+    const newSocket = io(API_URL);
     setSocket(newSocket);
 
     return () => {
@@ -94,10 +100,6 @@ export default function CompilerPage() {
   const handleJoinCompiler = (id) => {
     if (id.trim()) {
       navigate(`/compiler/${id.trim()}`);
-      // Refresh the page to ensure clean state
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
     } else {
       message.error('Please enter a valid compiler ID');
     }
