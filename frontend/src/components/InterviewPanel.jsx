@@ -34,6 +34,18 @@ const Container = styled.div`
       transform: translateY(0);
     }
   }
+  
+  /* Connection status pulse animation */
+  @keyframes pulse {
+    0%, 100% { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+    50% { 
+      opacity: 0.5; 
+      transform: scale(1.2); 
+    }
+  }
 `;
 
 const PanelHeader = styled.div`
@@ -356,24 +368,24 @@ const LanguageSelect = styled.select`
 `;
 
 const sampleCode = {
-  javascript: `// Write your JavaScript code here\nconsole.log("Welcome to Kodr! 🚀");\nconsole.log("Start coding...");\n\nfunction add(a, b) {\n  return a + b;\n}\n\n// Example: add(5, 10) returns 15\nconsole.log("Result:", add(5, 10));
+  javascript: `// Write your JavaScript code here\nconsole.log("Welcome to Kodr! ");\nconsole.log("Start coding...");\n\nfunction add(a, b) {\n  return a + b;\n}\n\n// Example: add(5, 10) returns 15\nconsole.log("Result:", add(5, 10));
 `,
-  python: `# Write your Python code here\nprint("Welcome to Kodr! 🚀")\nprint("Start coding...")\n\ndef subtract(a, b):\n  return a - b\n\nprint("Result:", subtract(10, 5))
+  python: `# Write your Python code here\nprint("Welcome to Kodr! ")\nprint("Start coding...")\n\ndef subtract(a, b):\n  return a - b\n\nprint("Result:", subtract(10, 5))
 `,
-  cpp: `// Write your C++ code here\n#include <iostream>\n\nint main() {\n  std::cout << "Welcome to Kodr! 🚀" << std::endl;\n  std::cout << "Start coding..." << std::endl;\n  std::cout << "Hello, world!" << std::endl;\n  return 0;\n}
+  cpp: `// Write your C++ code here\n#include <iostream>\n\nint main() {\n  std::cout << "Welcome to Kodr! " << std::endl;\n  std::cout << "Start coding..." << std::endl;\n  std::cout << "Hello, world!" << std::endl;\n  return 0;\n}
 `,
-  java: `// Write your Java code here\npublic class Main {\n  public static void main(String[] args) {\n    System.out.println("Welcome to Kodr! 🚀");\n    System.out.println("Start coding...");\n    System.out.println("Hello, world!");\n  }\n}
+  java: `// Write your Java code here\npublic class Main {\n  public static void main(String[] args) {\n    System.out.println("Welcome to Kodr! git ");\n    System.out.println("Start coding...");\n    System.out.println("Hello, world!");\n  }\n}
 `,
-  c: `// Write your C code here\n#include <stdio.h>\n\nint main() {\n  printf("Welcome to Kodr! 🚀\\n");\n  printf("Start coding...\\n");\n  printf("Hello, world!");\n  return 0;\n}
+  c: `// Write your C code here\n#include <stdio.h>\n\nint main() {\n  printf("Welcome to Kodr! \\n");\n  printf("Start coding...\\n");\n  printf("Hello, world!");\n  return 0;\n}
 `,
   // Add more languages here
-  go: `// Write your Go code here\npackage main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Welcome to Kodr! 🚀")\n\tfmt.Println("Start coding...")\n\tfmt.Println("Hello, world!")\n}
+  go: `// Write your Go code here\npackage main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Welcome to Kodr! ")\n\tfmt.Println("Start coding...")\n\tfmt.Println("Hello, world!")\n}
 `,
-  ruby: `# Write your Ruby code here\nputs "Welcome to Kodr! 🚀"\nputs "Start coding..."\nputs "Hello, world!"
+  ruby: `# Write your Ruby code here\nputs "Welcome to Kodr! "\nputs "Start coding..."\nputs "Hello, world!"
 `,
-  swift: `// Write your Swift code here\nimport Foundation\n\nprint("Welcome to Kodr! 🚀")\nprint("Start coding...")\nprint("Hello, world!")
+  swift: `// Write your Swift code here\nimport Foundation\n\nprint("Welcome to Kodr! ")\nprint("Start coding...")\nprint("Hello, world!")
 `,
-  kotlin: `// Write your Kotlin code here\nfun main() {\n  println("Welcome to Kodr! 🚀")\n  println("Start coding...")\n  println("Hello, world!")\n}
+  kotlin: `// Write your Kotlin code here\nfun main() {\n  println("Welcome to Kodr! ")\n  println("Start coding...")\n  println("Hello, world!")\n}
 `,
 };
 
@@ -424,6 +436,8 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
   const [showShareModal, setShowShareModal] = useState(false);
 
   const [showExitModal, setShowExitModal] = useState(false);
+  const [socketConnected, setSocketConnected] = useState(false);
+  const [socketConnecting, setSocketConnecting] = useState(false);
   
 
   
@@ -492,6 +506,31 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
   useEffect(() => {
     if (!socket) return;
 
+    // Track socket connection status
+    const handleConnect = () => {
+      console.log('Socket connected');
+      setSocketConnected(true);
+      setSocketConnecting(false);
+    };
+
+    const handleDisconnect = () => {
+      console.log('Socket disconnected');
+      setSocketConnected(false);
+      setSocketConnecting(false);
+    };
+
+    const handleConnecting = () => {
+      console.log('Socket connecting...');
+      setSocketConnecting(true);
+      setSocketConnected(false);
+    };
+
+    const handleConnectError = (error) => {
+      console.error('Socket connection error:', error);
+      setSocketConnected(false);
+      setSocketConnecting(false);
+    };
+
     const handleCodeUpdate = (data) => {
       if (data.interviewId === interviewId) {
         setCode(data.code);
@@ -520,14 +559,32 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
       }
     };
 
+    // Connection event listeners
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('connecting', handleConnecting);
+    socket.on('connect_error', handleConnectError);
 
-
+    // Application event listeners
     socket.on('codeUpdate', handleCodeUpdate);
     socket.on('compilerCodeUpdate', handleCompilerCodeUpdate);
     socket.on('codeOutput', handleCodeOutput);
     socket.on('whiteboardUpdate', handleWhiteboardUpdate);
 
+    // Set initial connection status
+    if (socket.connected) {
+      setSocketConnected(true);
+      setSocketConnecting(false);
+    } else if (socket.connecting) {
+      setSocketConnecting(true);
+      setSocketConnected(false);
+    }
+
     return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('connecting', handleConnecting);
+      socket.off('connect_error', handleConnectError);
       socket.off('codeUpdate', handleCodeUpdate);
       socket.off('compilerCodeUpdate', handleCompilerCodeUpdate);
       socket.off('codeOutput', handleCodeOutput);
@@ -555,6 +612,22 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
 
   // Handle Run Code
   const handleRunCode = () => {
+    // Check if socket is connected
+    if (!socket || !socketConnected) {
+      if (socketConnecting) {
+        setOutput('> Error: Still connecting to server\n> Please wait for connection to establish and try again.');
+      } else {
+        setOutput('> Error: Not connected to server\n> Please refresh the page and try again.');
+      }
+      return;
+    }
+
+    // For compiler mode, ensure we have a valid compiler session
+    if (isCompilerMode && !interviewId) {
+      setOutput('> Error: No compiler session ID\n> Please refresh the page and try again.');
+      return;
+    }
+
     // Ensure output view is visible (not whiteboard)
     setShowWhiteboard(false);
     
@@ -564,25 +637,29 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
       setAutoSwitchedToCompiler(true);
     }
     
-    if (socket) {
+    try {
+      // Set a temporary output while waiting for response
+      setOutput('> Running code...');
+      
+      // Emit the executeCode event
       socket.emit('executeCode', {
         interviewId,
         code,
         language,
       });
       
-      // Set a temporary output while waiting for response
-      setOutput('> Running code...');
-      
       // Set a timeout to detect if backend is not responding
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         if (output.includes('Running code...')) {
           setOutput('> Backend not responding - using mock output\n> Hello, world!\n> 15');
         }
       }, 5000); // 5 second timeout
-    } else {
-      // Mock output for testing when no socket
-      setOutput('> Hello, world!\n> 15');
+
+      // Clean up timeout if component unmounts
+      return () => clearTimeout(timeoutId);
+    } catch (error) {
+      console.error('Error executing code:', error);
+      setOutput('> Error: Failed to execute code\n> Please check your connection and try again.');
     }
   };
 
@@ -768,7 +845,29 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
               </Button>
           )}
           
-
+          {/* Connection Status Indicator */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.25rem 0.5rem',
+            borderRadius: '4px',
+            fontSize: 'clamp(0.6rem, 1.4vw, 0.7rem)',
+            fontWeight: '500',
+            background: socketConnected ? 'rgba(76, 175, 80, 0.2)' : socketConnecting ? 'rgba(255, 152, 0, 0.2)' : 'rgba(244, 67, 54, 0.2)',
+            border: socketConnected ? '1px solid rgba(76, 175, 80, 0.4)' : socketConnecting ? '1px solid rgba(255, 152, 0, 0.4)' : '1px solid rgba(244, 67, 54, 0.4)',
+            color: socketConnected ? '#4caf50' : socketConnecting ? '#ff9800' : '#f44336',
+            flexShrink: 0
+          }}>
+            <div style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: socketConnected ? '#4caf50' : socketConnecting ? '#ff9800' : '#f44336',
+              animation: socketConnecting ? 'pulse 1.5s infinite' : 'none'
+            }} />
+            {socketConnected ? 'Connected' : socketConnecting ? 'Connecting...' : 'Disconnected'}
+          </div>
         </div>
         
         <div style={{ 
@@ -796,7 +895,30 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
                 ))}
               </LanguageSelect>
               
-
+              {/* Mobile Connection Status Indicator */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                padding: '0.2rem 0.4rem',
+                borderRadius: '4px',
+                fontSize: 'clamp(0.6rem, 1.4vw, 0.7rem)',
+                fontWeight: '500',
+                background: socketConnected ? 'rgba(76, 175, 80, 0.2)' : socketConnecting ? 'rgba(255, 152, 0, 0.2)' : 'rgba(244, 67, 54, 0.2)',
+                border: socketConnected ? '1px solid rgba(76, 175, 80, 0.4)' : socketConnecting ? '1px solid rgba(255, 152, 0, 0.4)' : '1px solid rgba(244, 67, 54, 0.4)',
+                color: socketConnected ? '#4caf50' : socketConnecting ? '#ff9800' : '#f44336',
+                flexShrink: 0,
+                minWidth: 'clamp(60px, 15vw, 80px)'
+              }}>
+                <div style={{
+                  width: '4px',
+                  height: '4px',
+                  borderRadius: '50%',
+                  background: socketConnected ? '#4caf50' : socketConnecting ? '#ff9800' : '#f44336',
+                  animation: socketConnecting ? 'pulse 1.5s infinite' : 'none'
+                }} />
+                {socketConnected ? 'Online' : socketConnecting ? 'Conn...' : 'Offline'}
+              </div>
           
               {/* Profile Button for Mobile - After Timer */}
               {!isCompilerMode && (

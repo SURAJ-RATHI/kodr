@@ -14,8 +14,14 @@ export default function CompilerPage() {
     const style = document.createElement('style');
     style.textContent = `
       @keyframes pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.7; transform: scale(1.1); }
+        0%, 100% { 
+          opacity: 1; 
+          transform: scale(1); 
+        }
+        50% { 
+          opacity: 0.5; 
+          transform: scale(1.2); 
+        }
       }
     `;
     document.head.appendChild(style);
@@ -31,13 +37,15 @@ export default function CompilerPage() {
   const [compilerData, setCompilerData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(!compilerId);
+  const [socketConnected, setSocketConnected] = useState(false);
+  const [socketConnecting, setSocketConnecting] = useState(false);
 
   // Update showCreateForm when compilerId changes
   useEffect(() => {
     setShowCreateForm(!compilerId);
   }, [compilerId]);
 
-  // Initialize socket connection
+  // Initialize socket connection immediately when page loads
   useEffect(() => {
     const API_URL = import.meta.env.VITE_API_URL;
     if (!API_URL) {
@@ -45,10 +53,60 @@ export default function CompilerPage() {
       return;
     }
     
-    const newSocket = io(API_URL);
+    console.log('🔄 Initializing socket connection for compiler page...');
+    const newSocket = io(API_URL, {
+      // Add connection options for better reliability
+      timeout: 20000,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
+    });
+    
+    // Add connection event listeners
+    newSocket.on('connect', () => {
+      console.log('✅ Socket connected successfully - ready for compiler sessions');
+      setSocketConnected(true);
+      setSocketConnecting(false);
+    });
+    
+    newSocket.on('connect_error', (error) => {
+      console.error('❌ Socket connection error:', error);
+      message.error('Failed to connect to server. Please check your connection.');
+      setSocketConnected(false);
+      setSocketConnecting(false);
+    });
+    
+    newSocket.on('disconnect', () => {
+      console.log('⚠️ Socket disconnected');
+      setSocketConnected(false);
+      setSocketConnecting(false);
+    });
+    
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log(`🔄 Socket reconnected after ${attemptNumber} attempts`);
+      setSocketConnected(true);
+      setSocketConnecting(false);
+    });
+    
+    newSocket.on('reconnect_error', (error) => {
+      console.error('❌ Socket reconnection error:', error);
+      setSocketConnected(false);
+      setSocketConnecting(false);
+    });
+    
+    // Set initial connection state
+    if (newSocket.connected) {
+      setSocketConnected(true);
+      setSocketConnecting(false);
+    } else if (newSocket.connecting) {
+      setSocketConnecting(true);
+      setSocketConnected(false);
+    }
+    
     setSocket(newSocket);
 
     return () => {
+      console.log('🧹 Cleaning up socket connection');
       newSocket.close();
     };
   }, []);
@@ -156,6 +214,31 @@ export default function CompilerPage() {
              marginBottom: window.innerWidth <= 768 ? '1rem' : '2rem',
              flex: window.innerWidth <= 768 ? '0 0 auto' : 'none'
            }}>
+                         {/* Connection Status Indicator */}
+                         <div style={{
+                           display: 'inline-flex',
+                           alignItems: 'center',
+                           gap: '0.5rem',
+                           padding: '0.5rem 1rem',
+                           borderRadius: '20px',
+                           fontSize: 'clamp(0.7rem, 1.8vw, 0.8rem)',
+                           fontWeight: '600',
+                           background: socketConnected ? 'rgba(76, 175, 80, 0.15)' : socketConnecting ? 'rgba(255, 152, 0, 0.15)' : 'rgba(244, 67, 54, 0.15)',
+                           border: socketConnected ? '1px solid rgba(76, 175, 80, 0.4)' : socketConnecting ? '1px solid rgba(255, 152, 0, 0.4)' : '1px solid rgba(244, 67, 54, 0.4)',
+                           color: socketConnected ? '#4caf50' : socketConnecting ? '#ff9800' : '#f44336',
+                           marginBottom: '1rem',
+                           backdropFilter: 'blur(10px)'
+                         }}>
+                           <div style={{
+                             width: '8px',
+                             height: '8px',
+                             borderRadius: '50%',
+                             background: socketConnected ? '#4caf50' : socketConnecting ? '#ff9800' : '#f44336',
+                             animation: socketConnecting ? 'pulse 1.5s infinite' : 'none'
+                           }} />
+                           {socketConnected ? '🟢 Server Connected' : socketConnecting ? '🟡 Connecting...' : '🔴 Server Offline'}
+                         </div>
+                         
                          <div style={{ 
                fontSize: window.innerWidth <= 768 ? '2.5rem' : '3rem', 
                marginBottom: window.innerWidth <= 768 ? '0.5rem' : '1rem',
@@ -193,27 +276,35 @@ export default function CompilerPage() {
                type="primary" 
                size="large" 
                onClick={handleCreateCompiler}
+               disabled={!socketConnected}
+               title={socketConnected ? "Create a new compiler session" : "Please wait for server connection..."}
                style={{ 
                  width: '100%', 
                  height: window.innerWidth <= 768 ? '48px' : '56px',
-                 background: 'linear-gradient(135deg, #61dafb, #007acc)',
+                 background: socketConnected ? 'linear-gradient(135deg, #61dafb, #007acc)' : 'rgba(255, 255, 255, 0.1)',
                  border: 'none',
                  fontSize: window.innerWidth <= 768 ? '1rem' : '1.1rem',
                  fontWeight: '600',
                  borderRadius: window.innerWidth <= 768 ? '8px' : '12px',
-                 boxShadow: '0 4px 20px rgba(97, 218, 251, 0.3)',
-                 transition: 'all 0.3s ease'
+                 boxShadow: socketConnected ? '0 4px 20px rgba(97, 218, 251, 0.3)' : 'none',
+                 transition: 'all 0.3s ease',
+                 opacity: socketConnected ? 1 : 0.6,
+                 cursor: socketConnected ? 'pointer' : 'not-allowed'
                }}
               onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 25px rgba(97, 218, 251, 0.4)';
+                if (socketConnected) {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 25px rgba(97, 218, 251, 0.4)';
+                }
               }}
               onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 20px rgba(97, 218, 251, 0.3)';
+                if (socketConnected) {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 20px rgba(97, 218, 251, 0.3)';
+                }
               }}
             >
-              ✨ Create New Session
+              {socketConnected ? '✨ Create New Session' : '⏳ Connecting...'}
             </Button>
 
                          <div style={{ 
@@ -242,45 +333,57 @@ export default function CompilerPage() {
 
             <div>
                              <Input
-                 placeholder="Enter session ID to join..."
+                 placeholder={socketConnected ? "Enter session ID to join..." : "Waiting for connection..."}
                  size="large"
+                 disabled={!socketConnected}
                  style={{ 
-                   background: 'rgba(255, 255, 255, 0.08)',
-                   border: '1px solid rgba(255, 255, 255, 0.15)',
+                   background: socketConnected ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.04)',
+                   border: socketConnected ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.08)',
                    borderRadius: window.innerWidth <= 768 ? '8px' : '12px',
-                   color: '#fff',
+                   color: socketConnected ? '#fff' : '#666',
                    fontSize: window.innerWidth <= 768 ? '0.9rem' : '1rem',
-                   height: window.innerWidth <= 768 ? '44px' : '48px'
+                   height: window.innerWidth <= 768 ? '44px' : '48px',
+                   opacity: socketConnected ? 1 : 0.6
                  }}
-                 onPressEnter={(e) => handleJoinCompiler(e.target.value)}
+                 onPressEnter={(e) => socketConnected && handleJoinCompiler(e.target.value)}
                />
                <Button 
                  size="large" 
                  onClick={() => {
-                   const input = document.querySelector('input');
-                   if (input) handleJoinCompiler(input.value);
+                   if (socketConnected) {
+                     const input = document.querySelector('input');
+                     if (input) handleJoinCompiler(input.value);
+                   }
                  }}
+                 disabled={!socketConnected}
+                 title={socketConnected ? "Join an existing compiler session" : "Please wait for server connection..."}
                  style={{ 
                    width: '100%', 
                    marginTop: window.innerWidth <= 768 ? '0.75rem' : '1rem',
-                   background: 'rgba(255, 255, 255, 0.1)',
-                   border: '1px solid rgba(255, 255, 255, 0.2)',
-                   color: '#61dafb',
+                   background: socketConnected ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                   border: socketConnected ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.1)',
+                   color: socketConnected ? '#61dafb' : '#666',
                    height: window.innerWidth <= 768 ? '44px' : '48px',
                    borderRadius: window.innerWidth <= 768 ? '8px' : '12px',
                    fontWeight: '500',
-                   transition: 'all 0.2s ease'
+                   transition: 'all 0.2s ease',
+                   opacity: socketConnected ? 1 : 0.6,
+                   cursor: socketConnected ? 'pointer' : 'not-allowed'
                  }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.15)';
-                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  if (socketConnected) {
+                    e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                  if (socketConnected) {
+                    e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                  }
                 }}
               >
-                🔗 Join Session
+                {socketConnected ? '🔗 Join Session' : '⏳ Connecting...'}
               </Button>
             </div>
 

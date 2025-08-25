@@ -808,13 +808,35 @@ io.on('connection', (socket) => {
   socket.on('executeCode', async (data) => {
     const { interviewId, language, code } = data;
     console.log(`⚡ executeCode received: interviewId=${interviewId}, socket=${socket.id}`);
-    const result = await executeCode(language, code);
-    if (interviewId) {
-      console.log(`🔊 Emitting codeOutput to room: ${interviewId}`);
-      io.to(interviewId).emit('codeOutput', { ...result, interviewId });
-    } else {
-      console.log(`🔊 Emitting codeOutput to socket: ${socket.id}`);
-      socket.emit('codeOutput', result);
+    
+    // Validate required data
+    if (!language || !code) {
+      const errorResult = { error: true, output: 'Missing language or code parameter' };
+      if (interviewId) {
+        io.to(interviewId).emit('codeOutput', { ...errorResult, interviewId });
+      } else {
+        socket.emit('codeOutput', errorResult);
+      }
+      return;
+    }
+    
+    try {
+      const result = await executeCode(language, code);
+      if (interviewId) {
+        console.log(`🔊 Emitting codeOutput to room: ${interviewId}`);
+        io.to(interviewId).emit('codeOutput', { ...result, interviewId });
+      } else {
+        console.log(`🔊 Emitting codeOutput to socket: ${socket.id}`);
+        socket.emit('codeOutput', result);
+      }
+    } catch (error) {
+      console.error('Error executing code:', error);
+      const errorResult = { error: true, output: `Execution failed: ${error.message}` };
+      if (interviewId) {
+        io.to(interviewId).emit('codeOutput', { ...errorResult, interviewId });
+      } else {
+        socket.emit('codeOutput', errorResult);
+      }
     }
   });
 
