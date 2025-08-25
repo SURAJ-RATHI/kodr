@@ -1608,17 +1608,18 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
-          padding: '1rem'
+          padding: isMobile() ? '1rem' : '2rem'
         }}>
           <div style={{
             background: '#1a1a1a',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: '16px',
-            padding: '2rem',
-            maxWidth: '400px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: isMobile() ? '16px' : '20px',
+            padding: isMobile() ? '1.5rem' : '2rem',
+            maxWidth: isMobile() ? 'calc(100vw - 2rem)' : '450px',
             width: '100%',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(20px)'
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(97, 218, 251, 0.1)'
           }}>
             {/* Header */}
             <div style={{
@@ -1730,30 +1731,39 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
             {/* Action Buttons */}
             <div style={{
               display: 'flex',
-              gap: '1rem',
-              justifyContent: 'center'
+              gap: 'clamp(0.75rem, 2vw, 1rem)',
+              justifyContent: 'center',
+              flexDirection: isMobile() ? 'column' : 'row',
+              width: '100%'
             }}>
               <button
                 onClick={() => setShowExitModal(false)}
                 style={{
-                  padding: '0.75rem 1.5rem',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  fontSize: '0.9rem',
+                  padding: isMobile() ? '0.875rem 1.5rem' : '0.75rem 1.5rem',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '10px',
+                  color: '#ffffff',
+                  fontSize: isMobile() ? '1rem' : '0.9rem',
                   fontWeight: '500',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  minWidth: '100px'
+                  transition: 'all 0.3s ease',
+                  minWidth: isMobile() ? '100%' : '120px',
+                  height: isMobile() ? '48px' : '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backdropFilter: 'blur(10px)'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.15)';
-                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.background = 'rgba(255, 255, 255, 0.12)';
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+                  e.target.style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                  e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                  e.target.style.transform = 'translateY(0)';
                 }}
               >
                 Cancel
@@ -1766,25 +1776,32 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
                   }
                 }}
                 style={{
-                  padding: '0.75rem 1.5rem',
-                  background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)',
+                  padding: isMobile() ? '0.875rem 1.5rem' : '0.75rem 1.5rem',
+                  background: 'linear-gradient(135deg, #dc3545, #c82333)',
                   border: 'none',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  fontSize: '0.9rem',
+                  borderRadius: '10px',
+                  color: '#ffffff',
+                  fontSize: isMobile() ? '1rem' : '0.9rem',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  minWidth: '100px',
-                  boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)'
+                  transition: 'all 0.3s ease',
+                  minWidth: isMobile() ? '100%' : '140px',
+                  height: isMobile() ? '48px' : '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 20px rgba(220, 53, 69, 0.25)',
+                  backdropFilter: 'blur(10px)'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 6px 20px rgba(255, 107, 107, 0.4)';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 25px rgba(220, 53, 69, 0.35)';
+                  e.target.style.background = 'linear-gradient(135deg, #e74c3c, #d63031)';
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 15px rgba(255, 107, 107, 0.3)';
+                  e.target.style.boxShadow = '0 4px 20px rgba(220, 53, 69, 0.25)';
+                  e.target.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
                 }}
               >
                 Exit Session

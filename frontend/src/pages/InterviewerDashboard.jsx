@@ -973,30 +973,43 @@ const InterviewerDashboard = () => {
               icon={<LogoutOutlined style={{ fontSize: '1.4rem', color: '#fff' }} />} 
               onClick={() => {
                 Modal.confirm({
-                  title: <span style={{ color: '#ff4d4f', fontWeight: '600' }}>Confirm Logout</span>,
-                  content: 'Are you sure you want to logout from your account?',
+                  title: <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '1.1rem' }}>Confirm Logout</span>,
+                  content: <div style={{ color: '#cccccc', fontSize: '0.95rem', lineHeight: '1.5' }}>Are you sure you want to logout from your account?</div>,
                   okText: 'Logout',
                   cancelText: 'Cancel',
                   onOk: () => logout(),
                   centered: true,
                   className: 'logout-confirm-modal',
+                  width: window.innerWidth <= 768 ? '90%' : '400px',
                   okButtonProps: {
                     style: {
-                      background: '#2c3e50',
+                      background: 'linear-gradient(135deg, #dc3545, #c82333)',
                       border: 'none',
                       color: '#ffffff',
                       fontWeight: '600',
-                      width: '100%'
+                      height: '44px',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                      boxShadow: '0 4px 15px rgba(220, 53, 69, 0.25)',
+                      transition: 'all 0.3s ease'
                     }
                   },
                   cancelButtonProps: {
                     style: {
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      color: '#fff',
-                      fontWeight: '600',
-                      width: '100%'
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#ffffff',
+                      fontWeight: '500',
+                      height: '44px',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                      transition: 'all 0.3s ease'
                     }
+                  },
+                  style: {
+                    background: '#1a1a1a',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(97, 218, 251, 0.1)'
                   }
                 });
               }} 

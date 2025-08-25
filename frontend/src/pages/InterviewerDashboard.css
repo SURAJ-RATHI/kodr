@@ -842,6 +842,8 @@
   background: #1a1a1a !important;
   color: #fff !important;
   border-radius: 16px;
+  border: 1px solid rgba(97, 218, 251, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
 }
 
 .logout-confirm-modal .ant-modal-header {
@@ -851,7 +853,7 @@
 }
 
 .logout-confirm-modal .ant-modal-title {
-  color: #ff4d4f !important;
+  color: #ffffff !important;
   font-size: 1.2rem;
   font-weight: 600;
   text-align: center;
@@ -859,46 +861,46 @@
 }
 
 .logout-confirm-modal .ant-modal-title .anticon {
-  color: #ff4d4f !important;
+  color: #ffffff !important;
 }
 
-/* Ensure the warning icon is red */
+/* Ensure the warning icon is white */
 .logout-confirm-modal .ant-modal-confirm-title .anticon,
 .logout-confirm-modal .ant-modal-confirm-title {
-  color: #ff4d4f !important;
+  color: #ffffff !important;
 }
 
 .logout-confirm-modal .ant-modal-confirm-title {
-  color: #ff4d4f !important;
+  color: #ffffff !important;
   font-size: 1.2rem;
   font-weight: 600;
 }
 
 /* Target the actual confirmation modal classes */
 .ant-modal-confirm .ant-modal-confirm-title {
-  color: #ff4d4f !important;
+  color: #ffffff !important;
   font-size: 1.2rem;
   font-weight: 600;
 }
 
 .ant-modal-confirm .ant-modal-confirm-title .anticon {
-  color: #ff4d4f !important;
+  color: #ffffff !important;
 }
 
 /* Override any default styles */
 .ant-modal-confirm-title,
 .ant-modal-confirm-title .anticon {
-  color: #ff4d4f !important;
+  color: #ffffff !important;
 }
 
-/* Force red color with higher specificity */
+/* Force white color with higher specificity */
 body .ant-modal-confirm .ant-modal-confirm-title,
 body .ant-modal-confirm .ant-modal-confirm-title .anticon {
-  color: #ff4d4f !important;
+  color: #ffffff !important;
 }
 
 .logout-confirm-modal .ant-modal-body {
-  color: #fff !important;
+  color: #cccccc !important;
   padding: 1.5rem;
   text-align: center;
   font-size: 1rem;
@@ -906,27 +908,27 @@ body .ant-modal-confirm .ant-modal-confirm-title .anticon {
 }
 
 .logout-confirm-modal .ant-modal-body .ant-modal-confirm-content {
-  color: #fff !important;
+  color: #cccccc !important;
 }
 
 .logout-confirm-modal .ant-modal-confirm-content {
-  color: #fff !important;
+  color: #cccccc !important;
   font-size: 1rem;
   line-height: 1.5;
 }
 
-/* Ensure all text in the modal body is white */
+/* Ensure all text in the modal body is properly colored */
 .logout-confirm-modal .ant-modal-body,
 .logout-confirm-modal .ant-modal-body *,
 .logout-confirm-modal .ant-modal-confirm-content,
 .logout-confirm-modal .ant-modal-confirm-content * {
-  color: #fff !important;
+  color: #cccccc !important;
 }
 
 /* Specific styling for the confirmation message */
 .logout-confirm-modal .ant-modal-confirm-content p,
 .logout-confirm-modal .ant-modal-confirm-content div {
-  color: #fff !important;
+  color: #cccccc !important;
   font-size: 1rem;
   line-height: 1.5;
   margin: 0;
@@ -949,23 +951,32 @@ body .ant-modal-confirm .ant-modal-confirm-title .anticon {
   min-width: 100px;
   font-size: 1rem;
   width: 100%;
+  transition: all 0.3s ease;
 }
 
 .logout-confirm-modal .ant-btn-primary {
-  background: #2c3e50;
+  background: linear-gradient(135deg, #dc3545, #c82333);
   border: none;
   color: #fff;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.25);
+}
+
+.logout-confirm-modal .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #e74c3c, #d63031);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.35);
+  transform: translateY(-1px);
 }
 
 .logout-confirm-modal .ant-btn-default {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: #fff;
 }
 
 .logout-confirm-modal .ant-btn-default:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
 }
 
 /* Mobile logout modal adjustments */

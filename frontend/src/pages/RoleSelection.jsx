@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import styled from '@emotion/styled';
 import { motion, useAnimation } from 'framer-motion';
-import { FaCode, FaUserTie, FaLaptopCode, FaCodeBranch, FaTerminal, FaKeyboard, FaFileCode, FaBug, FaCheckCircle, FaPlay, FaStop, FaCog, FaJava } from 'react-icons/fa';
-import { SiLeetcode, SiHackerrank, SiJavascript, SiPython } from 'react-icons/si';
+import { FaCode, FaUserTie } from 'react-icons/fa';
+import { SiLeetcode, SiHackerrank } from 'react-icons/si';
 
 const RoleContainer = styled.div`
   display: flex;
@@ -31,16 +31,16 @@ const Title = styled(motion.h1)`
   font-size: clamp(2.5rem, 8vw, 4.5rem);
   margin-bottom: clamp(2rem, 5vw, 3rem);
   text-align: center;
-  color: #ffffff;
+  color:rgb(214, 225, 228); /* Changed to blue */
   position: relative;
   z-index: 2;
   font-weight: 800;
   letter-spacing: clamp(1px, 0.5vw, 2px);
   text-transform: uppercase;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 20px rgba(97, 218, 251, 0.5); /* Blue glow */
 
   span {
-    color: #ffffff;
+    color: #61dafb; /* Changed to blue */
   }
   
   /* Enhanced responsive design */
@@ -89,11 +89,34 @@ const RoleCard = styled(motion.div)`
   align-items: center;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+
+  /* Candidate card styling (green) */
+  ${props => props.role === 'candidate' && `
+    border-color: rgba(76, 175, 80, 0.3);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.1);
+    
+    &:hover {
+      border-color: #4caf50;
+      box-shadow: 0 20px 40px rgba(76, 175, 80, 0.3);
+      background: rgba(76, 175, 80, 0.05);
+    }
+  `}
+
+  /* Interviewer card styling (red) */
+  ${props => props.role === 'interviewer' && `
+    border-color: rgba(244, 67, 54, 0.3);
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.1);
+    
+    &:hover {
+      border-color: #f44336;
+      box-shadow: 0 20px 40px rgba(244, 67, 54, 0.3);
+      background: rgba(244, 67, 54, 0.05);
+    }
+  `}
 
   &:hover {
     transform: translateY(-15px);
-    border-color: #ffffff;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   }
   
   /* Enhanced responsive design */
@@ -119,6 +142,19 @@ const RoleIcon = styled(motion.div)`
   align-items: center;
   gap: clamp(0.5rem, 1.5vw, 1rem);
   position: relative;
+  transition: color 0.3s ease;
+
+  /* Candidate icon styling (green) */
+  ${props => props.role === 'candidate' && `
+    color: #4caf50;
+    filter: drop-shadow(0 0 10px rgba(76, 175, 80, 0.5));
+  `}
+
+  /* Interviewer icon styling (red) */
+  ${props => props.role === 'interviewer' && `
+    color: #f44336;
+    filter: drop-shadow(0 0 10px rgba(244, 67, 54, 0.5));
+  `}
 
   svg {
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
@@ -145,6 +181,19 @@ const RoleTitle = styled.h2`
   color: #ffffff;
   font-weight: 600;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  transition: color 0.3s ease;
+
+  /* Candidate title styling (green) */
+  ${props => props.role === 'candidate' && `
+    color: #4caf50;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  `}
+
+  /* Interviewer title styling (red) */
+  ${props => props.role === 'interviewer' && `
+    color: #f44336;
+    text-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+  `}
   
   /* Enhanced responsive design */
   @media (max-width: 768px) {
@@ -176,36 +225,6 @@ const RoleDescription = styled.p`
   }
 `;
 
-const AnimatedBackground = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 1;
-`;
-
-const Hexagon = styled(motion.div)`
-  position: absolute;
-  width: 100px;
-  height: 115px;
-  background: rgba(255, 255, 255, 0.03);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const FloatingCode = styled(motion.div)`
-  position: absolute;
-  font-family: 'Courier New', monospace;
-  color: rgba(255, 255, 255, 0.2);
-  font-size: 1.2rem;
-  pointer-events: none;
-  white-space: nowrap;
-  font-weight: bold;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-`;
-
 const GlowEffect = styled.div`
   position: absolute;
   width: 100%;
@@ -214,110 +233,6 @@ const GlowEffect = styled.div`
   pointer-events: none;
   z-index: 1;
 `;
-
-const TechElement = styled(motion.div)`
-  position: absolute;
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.2);
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const CompilerWindow = styled(motion.div)`
-  position: absolute;
-  width: 300px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(5px);
-`;
-
-const CompilerHeader = styled.div`
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-`;
-
-const CompilerContent = styled.div`
-  padding: 1rem;
-  font-family: 'Courier New', monospace;
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 0.8rem;
-  line-height: 1.4;
-`;
-
-const InterviewBubble = styled(motion.div)`
-  position: absolute;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 1rem;
-  max-width: 250px;
-  backdrop-filter: blur(5px);
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 0.9rem;
-  line-height: 1.4;
-`;
-
-const codeSnippets = [
-  'function solve() {',
-  'class Interview {',
-  'const result = [];',
-  'async function fetch() {',
-  'return new Promise();',
-  'try {',
-  '} catch (error) {',
-  '// Code execution',
-];
-
-const techElements = [
-  { icon: <FaKeyboard />, text: "Coding" },
-  { icon: <FaFileCode />, text: "Development" },
-  { icon: <FaBug />, text: "Debugging" },
-  { icon: <FaCheckCircle />, text: "Testing" },
-  { icon: <SiJavascript />, text: "JavaScript" },
-  { icon: <SiPython />, text: "Python" },
-  { icon: <FaJava />, text: "Java" },
-  { icon: <FaPlay />, text: "Run" },
-  { icon: <FaStop />, text: "Stop" },
-  { icon: <FaCog />, text: "Settings" },
-];
-
-const compilerOutputs = [
-  `> Compiling...
-> Running tests...
-✓ All tests passed
-> Build successful`,
-  `> Starting interview...
-> Loading questions...
-> Ready for candidate`,
-  `> Analyzing code...
-> Checking complexity...
-> Performance: Optimal`,
-  `> Debugging...
-> Found 0 errors
-> Code review complete`,
-];
-
-const interviewQuestions = [
-  "What's the time complexity of this algorithm?",
-  "How would you optimize this solution?",
-  "Explain your approach to this problem.",
-  "Can you handle edge cases?",
-  "What's the space complexity?",
-  "How would you test this code?",
-];
 
 const RoleSelection = () => {
   const navigate = useNavigate();
@@ -348,142 +263,7 @@ const RoleSelection = () => {
   return (
     <RoleContainer>
       <GlowEffect />
-      <AnimatedBackground>
-        {[...Array(15)].map((_, i) => (
-          <Hexagon
-            key={`hex-${i}`}
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              scale: 0,
-              rotate: Math.random() * 360,
-            }}
-            animate={{
-              scale: [0, 1, 0],
-              rotate: [0, 360],
-              x: [0, Math.random() * 200 - 100],
-              y: [0, Math.random() * 200 - 100],
-            }}
-            transition={{
-              duration: 8 + Math.random() * 7,
-              repeat: Infinity,
-              delay: i * 0.5,
-            }}
-            style={{
-              width: 50 + Math.random() * 100,
-              height: 58 + Math.random() * 115,
-            }}
-          />
-        ))}
-
-        {techElements.map((element, i) => (
-          <TechElement
-            key={`tech-${i}`}
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              opacity: 0,
-              scale: 0,
-            }}
-            animate={{
-              opacity: [0, 0.5, 0],
-              scale: [0, 1, 0],
-              x: [0, Math.random() * 300 - 150],
-              y: [0, Math.random() * 300 - 150],
-            }}
-            transition={{
-              duration: 5 + Math.random() * 3,
-              repeat: Infinity,
-              delay: i * 0.6,
-            }}
-          >
-            {element.icon}
-            <span>{element.text}</span>
-          </TechElement>
-        ))}
-
-        {compilerOutputs.map((output, i) => (
-          <CompilerWindow
-            key={`compiler-${i}`}
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              opacity: 0,
-              scale: 0,
-            }}
-            animate={{
-              opacity: [0, 0.7, 0],
-              scale: [0, 1, 0],
-              x: [0, Math.random() * 200 - 100],
-              y: [0, Math.random() * 200 - 100],
-            }}
-            transition={{
-              duration: 6 + Math.random() * 4,
-              repeat: Infinity,
-              delay: i * 1.2,
-            }}
-          >
-            <CompilerHeader>
-              <FaCode />
-              <span>Compiler</span>
-            </CompilerHeader>
-            <CompilerContent>
-              {output}
-            </CompilerContent>
-          </CompilerWindow>
-        ))}
-
-        {interviewQuestions.map((question, i) => (
-          <InterviewBubble
-            key={`question-${i}`}
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              opacity: 0,
-              scale: 0,
-            }}
-            animate={{
-              opacity: [0, 0.6, 0],
-              scale: [0, 1, 0],
-              x: [0, Math.random() * 250 - 125],
-              y: [0, Math.random() * 250 - 125],
-            }}
-            transition={{
-              duration: 7 + Math.random() * 3,
-              repeat: Infinity,
-              delay: i * 1,
-            }}
-          >
-            {question}
-          </InterviewBubble>
-        ))}
-      </AnimatedBackground>
-
-      {codeSnippets.map((snippet, i) => (
-        <FloatingCode
-          key={`code-${i}`}
-          initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-            opacity: 0,
-            rotate: Math.random() * 360,
-          }}
-          animate={{
-            opacity: [0, 0.5, 0],
-            y: [0, -400],
-            x: [0, Math.random() * 400 - 200],
-            rotate: [0, 360],
-          }}
-          transition={{
-            duration: 6 + Math.random() * 4,
-            repeat: Infinity,
-            delay: i * 0.8,
-          }}
-        >
-          {snippet}
-        </FloatingCode>
-      ))}
-
+      
       <Title
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -499,14 +279,20 @@ const RoleSelection = () => {
           onHoverStart={() => setHoveredRole('candidate')}
           onHoverEnd={() => setHoveredRole(null)}
           onClick={() => handleRoleSelect('candidate')}
+          role="candidate"
         >
           <RoleIcon
             animate={controls}
+            role="candidate"
           >
             <FaCode />
             <SiLeetcode />
           </RoleIcon>
-          <RoleTitle>Candidate</RoleTitle>
+          <RoleTitle
+            role="candidate"
+          >
+            Candidate
+          </RoleTitle>
           <RoleDescription>
             Ready to showcase your coding skills? Join as a candidate and take on exciting coding challenges.
           </RoleDescription>
@@ -518,14 +304,20 @@ const RoleSelection = () => {
           onHoverStart={() => setHoveredRole('interviewer')}
           onHoverEnd={() => setHoveredRole(null)}
           onClick={() => handleRoleSelect('interviewer')}
+          role="interviewer"
         >
           <RoleIcon
             animate={controls}
+            role="interviewer"
           >
             <FaUserTie />
             <SiHackerrank />
           </RoleIcon>
-          <RoleTitle>Interviewer</RoleTitle>
+          <RoleTitle
+            role="interviewer"
+          >
+            Interviewer
+          </RoleTitle>
           <RoleDescription>
             Looking to evaluate talent? Join as an interviewer and help shape the next generation of developers.
           </RoleDescription>
