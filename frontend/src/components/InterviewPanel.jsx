@@ -1628,129 +1628,125 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
         >
           <div style={{
             background: '#1a1a1a',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: isMobile() ? '16px' : '20px',
-            padding: isMobile() ? '1.5rem' : '2rem',
-            maxWidth: isMobile() ? 'calc(100vw - 2rem)' : '450px',
+            border: '2px solid rgba(97, 218, 251, 0.2)',
+            borderRadius: '16px',
+            padding: isMobile() ? '2rem 1.5rem' : '2.5rem',
+            maxWidth: isMobile() ? '90vw' : '500px',
             width: '100%',
-            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.6)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(97, 218, 251, 0.1)'
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.8)',
+            textAlign: 'center'
           }}>
-            {/* Header */}
+            {/* Professional Exit Icon */}
             <div style={{
-              textAlign: 'center',
-              marginBottom: '1.5rem'
+              width: '60px',
+              height: '60px',
+              background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)',
+              borderRadius: '50%',
+              margin: '0 auto 1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 25px rgba(255, 107, 107, 0.3)'
             }}>
-              <div style={{
-                fontSize: '2.5rem',
-                marginBottom: '1rem',
-                filter: 'drop-shadow(0 0 20px rgba(97, 218, 251, 0.5))'
-              }}>
-                🚪
-              </div>
-              <h3 style={{
-                color: '#61dafb',
-                fontSize: '1.3rem',
-                fontWeight: '600',
-                margin: '0 0 0.5rem 0'
-              }}>
-                Exit Session?
-              </h3>
-              <p style={{
-                color: '#ccc',
-                fontSize: '0.9rem',
-                lineHeight: '1.5',
-                margin: 0
-              }}>
-                Are you sure you want to exit this session?
-              </p>
+              <span style={{
+                fontSize: '24px',
+                color: '#ffffff',
+                fontWeight: 'bold'
+              }}>×</span>
             </div>
-
-            {/* Session ID Display */}
-            <div style={{
-              background: 'rgba(97, 218, 251, 0.1)',
-              border: '1px solid rgba(97, 218, 251, 0.2)',
-              borderRadius: '8px',
-              padding: '1rem',
-              marginBottom: '1.5rem',
-              textAlign: 'center'
+            
+            {/* Title */}
+            <h2 style={{
+              color: '#61dafb',
+              fontSize: isMobile() ? '1.5rem' : '1.75rem',
+              fontWeight: '600',
+              margin: '0 0 1rem',
+              textShadow: '0 0 10px rgba(97, 218, 251, 0.3)'
             }}>
-              <p style={{
-                color: '#888',
-                fontSize: '0.8rem',
-                margin: '0 0 0.5rem 0',
-                fontWeight: '500'
+              Exit Session?
+            </h2>
+            
+            {/* Description */}
+            <p style={{
+              color: '#cccccc',
+              fontSize: '1rem',
+              margin: '0 0 1.5rem',
+              lineHeight: '1.5'
+            }}>
+              Are you sure you want to exit this session?
+            </p>
+            
+            {/* Session ID Section */}
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{
+                display: 'block',
+                color: '#999999',
+                fontSize: '0.9rem',
+                marginBottom: '0.5rem',
+                textAlign: 'left'
               }}>
                 Session ID (copy this to rejoin later):
-              </p>
+              </label>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                background: 'rgba(0, 0, 0, 0.3)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '6px',
+                background: '#2a2a2a',
+                border: '1px solid rgba(97, 218, 251, 0.2)',
+                borderRadius: '8px',
                 padding: '0.75rem',
-                fontFamily: 'monospace',
-                fontSize: '0.9rem',
-                color: '#61dafb',
-                wordBreak: 'break-all',
-                userSelect: 'all'
+                marginBottom: '0.5rem'
               }}>
-                <span style={{ flex: 1, textAlign: 'left' }}>
-                  {interviewId}
-                </span>
+                <input
+                  type="text"
+                  value={interviewId}
+                  readOnly
+                  style={{
+                    flex: 1,
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#61dafb',
+                    fontSize: '0.9rem',
+                    outline: 'none',
+                    fontFamily: 'monospace'
+                  }}
+                />
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(interviewId);
                     // You can add a success message here
                   }}
-                  title="Copy session ID"
                   style={{
-                    background: 'rgba(97, 218, 251, 0.2)',
-                    border: '1px solid rgba(97, 218, 251, 0.3)',
-                    borderRadius: '4px',
-                    padding: '0.4rem 0.6rem',
-                    color: '#61dafb',
-                    cursor: 'pointer',
-                    fontSize: '0.8rem',
+                    background: 'linear-gradient(135deg, #61dafb, #4fa8c7)',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#ffffff',
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.85rem',
                     fontWeight: '500',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    flexShrink: 0
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    marginLeft: '0.5rem'
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.background = 'rgba(97, 218, 251, 0.3)';
-                    e.target.style.borderColor = 'rgba(97, 218, 251, 0.5)';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 15px rgba(97, 218, 251, 0.3)';
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = 'rgba(97, 218, 251, 0.2)';
-                    e.target.style.borderColor = 'rgba(97, 218, 251, 0.3)';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = 'none';
                   }}
                 >
-                  <svg 
-                    viewBox="64 64 896 896" 
-                    width="0.8em" 
-                    height="0.8em" 
-                    fill="currentColor"
-                  >
-                    <path d="M832 64H296c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h496v688c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V96c0-17.7-14.3-32-32-32zM704 192H192c-17.7 0-32 14.3-32 32v530.7c0 8.5 3.4 16.6 9.4 22.6l173.3 173.3c2.2 2.2 4.7 4 7.4 5.5v1.9h4.2c3.5 1.3 7.2 2 11 2H704c17.7 0 32-14.3 32-32V224c0-17.7-14.3-32-32-32zM350 856.2L263.9 770H350v86.2zM664 888H414V746c0-22.1-17.9-40-40-40H232V264h432v624z"></path>
-                  </svg>
                   Copy
                 </button>
               </div>
             </div>
-
-            {/* Action Buttons */}
+            
+            {/* Horizontal Button Layout */}
             <div style={{
               display: 'flex',
-              gap: 'clamp(0.75rem, 2vw, 1rem)',
+              gap: '1rem',
               justifyContent: 'center',
-              flexDirection: isMobile() ? 'column' : 'row',
-              width: '100%'
+              flexDirection: isMobile() ? 'column' : 'row'
             }}>
               <button
                 onClick={() => setShowExitModal(false)}
@@ -1761,7 +1757,7 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
                   borderRadius: '10px',
                   color: '#ffffff',
                   fontSize: isMobile() ? '1rem' : '0.9rem',
-                  fontWeight: '500',
+                  fontWeight: '600',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                   minWidth: isMobile() ? '100%' : '120px',

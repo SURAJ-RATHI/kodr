@@ -980,7 +980,7 @@ const InterviewerDashboard = () => {
                   onOk: () => logout(),
                   centered: true,
                   className: 'logout-confirm-modal',
-                  width: window.innerWidth <= 768 ? '90%' : '400px',
+                  width: window.innerWidth <= 768 ? '90%' : '450px',
                   okButtonProps: {
                     style: {
                       background: 'linear-gradient(135deg, #dc3545, #c82333)',
@@ -991,7 +991,9 @@ const InterviewerDashboard = () => {
                       borderRadius: '8px',
                       fontSize: '0.95rem',
                       boxShadow: '0 4px 15px rgba(220, 53, 69, 0.25)',
-                      transition: 'all 0.3s ease'
+                      transition: 'all 0.3s ease',
+                      minWidth: '120px',
+                      margin: '0 8px'
                     }
                   },
                   cancelButtonProps: {
@@ -1003,7 +1005,9 @@ const InterviewerDashboard = () => {
                       height: '44px',
                       borderRadius: '8px',
                       fontSize: '0.95rem',
-                      transition: 'all 0.3s ease'
+                      transition: 'all 0.3s ease',
+                      minWidth: '120px',
+                      margin: '0 8px'
                     }
                   },
                   style: {

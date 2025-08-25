@@ -1154,15 +1154,24 @@ body .ant-modal-confirm .ant-modal-confirm-title .anticon {
 } 
 
 /* Force logout modal button styles with higher specificity */
+body .logout-confirm-modal .ant-modal-confirm-btns {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  margin-top: 24px !important;
+}
+
 body .logout-confirm-modal .ant-modal-confirm-btns .ant-btn {
   height: 44px !important;
   font-weight: 600 !important;
   border-radius: 8px !important;
-  min-width: 100px !important;
+  min-width: 120px !important;
   font-size: 1rem !important;
-  width: 100% !important;
+  width: auto !important;
   transition: all 0.3s ease !important;
   margin: 0 !important;
+  flex: 0 0 auto !important;
 }
 
 body .logout-confirm-modal .ant-modal-confirm-btns .ant-btn-primary {
@@ -1191,15 +1200,24 @@ body .logout-confirm-modal .ant-modal-confirm-btns .ant-btn-default:hover {
 }
 
 /* Additional specificity for Ant Design modal buttons */
+body .ant-modal-confirm .ant-modal-confirm-btns {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  margin-top: 24px !important;
+}
+
 body .ant-modal-confirm .ant-modal-confirm-btns .ant-btn {
   height: 44px !important;
   font-weight: 600 !important;
   border-radius: 8px !important;
-  min-width: 100px !important;
+  min-width: 120px !important;
   font-size: 1rem !important;
-  width: 100% !important;
+  width: auto !important;
   transition: all 0.3s ease !important;
   margin: 0 !important;
+  flex: 0 0 auto !important;
 }
 
 body .ant-modal-confirm .ant-modal-confirm-btns .ant-btn-primary {
