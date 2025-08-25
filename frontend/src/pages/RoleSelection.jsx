@@ -103,15 +103,15 @@ const RoleCard = styled(motion.div)`
     }
   `}
 
-  /* Interviewer card styling (red) */
+  /* Interviewer card styling (blue) */
   ${props => props.role === 'interviewer' && `
-    border-color: rgba(244, 67, 54, 0.3);
-    box-shadow: 0 0 20px rgba(244, 67, 54, 0.1);
+    border-color: rgba(97, 218, 251, 0.3);
+    box-shadow: 0 0 20px rgba(97, 218, 251, 0.1);
     
     &:hover {
-      border-color: #f44336;
-      box-shadow: 0 20px 40px rgba(244, 67, 54, 0.3);
-      background: rgba(244, 67, 54, 0.05);
+      border-color: #61dafb;
+      box-shadow: 0 20px 40px rgba(97, 218, 251, 0.3);
+      background: rgba(97, 218, 251, 0.05);
     }
   `}
 
@@ -150,10 +150,10 @@ const RoleIcon = styled(motion.div)`
     filter: drop-shadow(0 0 10px rgba(76, 175, 80, 0.5));
   `}
 
-  /* Interviewer icon styling (red) */
+  /* Interviewer icon styling (blue) */
   ${props => props.role === 'interviewer' && `
-    color: #f44336;
-    filter: drop-shadow(0 0 10px rgba(244, 67, 54, 0.5));
+    color: #61dafb;
+    filter: drop-shadow(0 0 10px rgba(97, 218, 251, 0.5));
   `}
 
   svg {
@@ -189,10 +189,10 @@ const RoleTitle = styled.h2`
     text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
   `}
 
-  /* Interviewer title styling (red) */
+  /* Interviewer title styling (blue) */
   ${props => props.role === 'interviewer' && `
-    color: #f44336;
-    text-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+    color: #61dafb;
+    text-shadow: 0 0 10px rgba(97, 218, 251, 0.5);
   `}
   
   /* Enhanced responsive design */

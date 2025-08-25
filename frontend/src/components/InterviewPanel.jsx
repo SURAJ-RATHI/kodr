@@ -46,6 +46,20 @@ const Container = styled.div`
       transform: scale(1.2); 
     }
   }
+  
+  /* Exit modal button styles */
+  .exit-session-modal button {
+    transition: all 0.3s ease !important;
+    font-family: inherit !important;
+  }
+  
+  .exit-session-modal button:hover {
+    transform: translateY(-2px) !important;
+  }
+  
+  .exit-session-modal button:active {
+    transform: translateY(0) !important;
+  }
 `;
 
 const PanelHeader = styled.div`
@@ -1609,7 +1623,9 @@ export default function InterviewPanel({ socket, interviewId, interviewData, sho
           justifyContent: 'center',
           zIndex: 9999,
           padding: isMobile() ? '1rem' : '2rem'
-        }}>
+        }}
+        className="exit-session-modal"
+        >
           <div style={{
             background: '#1a1a1a',
             border: '1px solid rgba(255, 255, 255, 0.2)',
