@@ -296,6 +296,18 @@ const FeatureCard = styled(motion.div)`
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(97, 218, 251, 0.3);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(97, 218, 251, 0.2);
+  }
+
+  &:active {
+    transform: translateY(-2px);
+  }
 
   &::before {
     content: '';
@@ -490,6 +502,7 @@ const HomePage = () => {
         <FeatureCard
           variants={itemVariants}
           whileHover={{ y: -10, transition: { duration: 0.2 } }}
+          onClick={() => navigate('/compiler')}
         >
           <h3>Real-time Collaboration</h3>
           <p>Code together with built-in editor and whiteboard. Perfect for pair programming and technical discussions.</p>
@@ -497,6 +510,7 @@ const HomePage = () => {
         <FeatureCard
           variants={itemVariants}
           whileHover={{ y: -10, transition: { duration: 0.2 } }}
+          onClick={handleStartInterviewClick}
         >
           <h3>Smart Timer</h3>
           <p>Configurable interview duration with smart alerts. Keep your interviews on track and professional.</p>
@@ -504,6 +518,7 @@ const HomePage = () => {
         <FeatureCard
           variants={itemVariants}
           whileHover={{ y: -10, transition: { duration: 0.2 } }}
+          onClick={handleStartInterviewClick}
         >
           <h3>Video Integration</h3>
           <p>High-quality video calls with screen sharing. Connect face-to-face while coding together.</p>
